@@ -115,6 +115,7 @@ const state = {
   settings: {},
   lastSeenTraderId: null,
   serverConnected: true,
+  discoveryTab: 'paste',
 };
 
 const API = {
@@ -337,8 +338,123 @@ function showOutreachModal(traderId){ const html=`<h3 class="text-lg font-bold m
 async function submitOutreach(traderId){ const method=document.getElementById('outreach-method').value; const notes=document.getElementById('outreach-notes').value; await API.logOutreach(traderId,{method,notes}); showToast('Outreach logged'); closeModal(); refreshData().then(()=>renderTraderDetail()); }
 
 function renderDiscovery(){
-  let html=`<div class="p-6"><h1 class="text-2xl font-bold mb-6">Add Trader</h1><div class="flex gap-4 border-b border-brd mb-6"><button class="pb-2 px-1 border-b-2 border-accent font-medium text-label">Quick Paste</button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Paste Trader Profile</h2><p class="text-label-secondary text-sm mb-4">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p><textarea id="paste-text" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-64 outline-none focus:ring-1 ring-accent" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Preview & Edit</h2><div id="preview-content" class="text-label-tertiary text-sm">Paste text to see preview...</div><div class="mt-6 flex gap-3"><button id="parse-btn" onclick="parsePreview()" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Parse</button><button id="save-btn" onclick="saveParsedTrader()" class="bg-sys-green hover:bg-sys-green/90 text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Add Trader</button></div></div></div></div>`;
-  document.getElementById('content').innerHTML=html;
+  const tab = state.discoveryTab || 'paste';
+  let html = `<div class="p-6"><h1 class="text-2xl font-bold mb-6">Add Trader</h1>`;
+  
+  html += `<div class="flex gap-4 border-b border-brd mb-6">`;
+  html += `<button class="pb-2 px-1 border-b-2 ${tab==='manual'?'border-accent font-medium text-label':'text-label-secondary'}" onclick="state.discoveryTab='manual';renderDiscovery()">Manual Entry</button>`;
+  html += `<button class="pb-2 px-1 border-b-2 ${tab==='paste'?'border-accent font-medium text-label':'text-label-secondary'}" onclick="state.discoveryTab='paste';renderDiscovery()">Quick Paste</button>`;
+  html += `</div>`;
+  
+  if(tab === 'manual') {
+    html += renderManualEntry();
+  } else {
+    html += renderQuickPaste();
+  }
+  
+  html += `</div>`;
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderManualEntry(){
+  return `
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="surface p-6 rounded-2xl">
+      <h2 class="text-lg font-semibold mb-4">Trader Information</h2>
+      <div class="space-y-4">
+        <div><label class="text-label-secondary text-sm block mb-1">Trader Name *</label><input id="me-name" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="e.g. CryptoKing"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-label-secondary text-sm block mb-1">Platform</label><select id="me-platform" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none">${['Manual','eToro','MQL5','TradingView','ZuluTrade','Myfxbook','Darwinex','NAGA','FXBlue','Twitter','Discord','Telegram'].map(p=>`<option>${p}</option>`).join('')}</select></div>
+          <div><label class="text-label-secondary text-sm block mb-1">Location</label><input id="me-location" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="e.g. Singapore"></div>
+        </div>
+        <div><label class="text-label-secondary text-sm block mb-1">Profile URL</label><input id="me-url" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="https://..."></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-label-secondary text-sm block mb-1">Language</label><input id="me-language" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="e.g. English"></div>
+          <div><label class="text-label-secondary text-sm block mb-1">Strategy Type</label><input id="me-strategy" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="e.g. DeFi Yield"></div>
+        </div>
+        <div><label class="text-label-secondary text-sm block mb-1">Raw Text (paste profile text here for analysis)</label><textarea id="me-raw" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-24 outline-none" placeholder="Paste any text about this trader..."></textarea></div>
+      </div>
+    </div>
+    <div class="space-y-6">
+      <div class="surface p-6 rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4">Performance Metrics</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div><label class="text-label-secondary block mb-1">Followers</label><input id="me-followers" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">Copiers</label><input id="me-copiers" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">AUM ($)</label><input id="me-aum" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">Monthly Return %</label><input id="me-monthly" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">Yearly Return %</label><input id="me-yearly" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">Max Drawdown %</label><input id="me-dd" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+          <div><label class="text-label-secondary block mb-1">Risk Score (0-10)</label><input id="me-risk" type="number" min="0" max="10" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" value="0"></div>
+        </div>
+      </div>
+      <div class="surface p-6 rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4">Social Links</h2>
+        <div class="space-y-3">
+          <div><label class="text-label-secondary text-xs block mb-1">Twitter</label><input id="me-twitter" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="@username"></div>
+          <div><label class="text-label-secondary text-xs block mb-1">Telegram</label><input id="me-telegram" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="@username"></div>
+          <div><label class="text-label-secondary text-xs block mb-1">Discord</label><input id="me-discord" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="user#1234"></div>
+          <div><label class="text-label-secondary text-xs block mb-1">YouTube</label><input id="me-youtube" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="https://youtube.com/..."></div>
+          <div><label class="text-label-secondary text-xs block mb-1">Website</label><input id="me-website" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none" placeholder="https://..."></div>
+        </div>
+      </div>
+      <button onclick="saveManualEntry()" class="w-full bg-accent hover:bg-accent-hover text-white px-4 py-3 rounded-lg text-sm font-medium">Add Trader</button>
+    </div>
+  </div>`;
+}
+
+function renderQuickPaste(){
+  return `
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="surface p-6 rounded-2xl">
+      <h2 class="text-lg font-semibold mb-4">Paste Trader Profile</h2>
+      <p class="text-label-secondary text-sm mb-4">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p>
+      <textarea id="paste-text" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-64 outline-none focus:ring-1 ring-accent" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea>
+    </div>
+    <div class="surface p-6 rounded-2xl">
+      <h2 class="text-lg font-semibold mb-4">Preview & Edit</h2>
+      <div id="preview-content" class="text-label-tertiary text-sm">Paste text to see preview...</div>
+      <div class="mt-6 flex gap-3">
+        <button id="parse-btn" onclick="parsePreview()" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Parse</button>
+        <button id="save-btn" onclick="saveParsedTrader()" class="bg-sys-green hover:bg-sys-green/90 text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Add Trader</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function saveManualEntry(){
+  const name = document.getElementById('me-name').value.trim();
+  if(!name){ showToast('Trader name is required','error'); return; }
+  
+  const trader = {
+    trader_name: name,
+    platform: document.getElementById('me-platform').value,
+    location: document.getElementById('me-location').value,
+    profile_url: document.getElementById('me-url').value,
+    language: document.getElementById('me-language').value,
+    strategy_type: document.getElementById('me-strategy').value,
+    raw_text: document.getElementById('me-raw').value,
+    followers: parseInt(document.getElementById('me-followers').value) || 0,
+    copiers: parseInt(document.getElementById('me-copiers').value) || 0,
+    assets_under_management: parseFloat(document.getElementById('me-aum').value) || 0,
+    monthly_return: parseFloat(document.getElementById('me-monthly').value) || 0,
+    yearly_return: parseFloat(document.getElementById('me-yearly').value) || 0,
+    maximum_drawdown: parseFloat(document.getElementById('me-dd').value) || 0,
+    risk_score: parseInt(document.getElementById('me-risk').value) || 0,
+    twitter: document.getElementById('me-twitter').value,
+    telegram: document.getElementById('me-telegram').value,
+    discord: document.getElementById('me-discord').value,
+    youtube: document.getElementById('me-youtube').value,
+    website: document.getElementById('me-website').value,
+    status: 'Trader Found',
+    pipeline_stage: 'Research',
+    date_added: new Date().toISOString(),
+    date_updated: new Date().toISOString()
+  };
+  
+  await API.createTrader(trader);
+  showToast('Trader added successfully');
+  navigate('traders');
 }
 
 let parsedTraderData={};
