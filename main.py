@@ -1,3 +1,4 @@
+from collections import Counter
 import html
 import json
 import logging
@@ -11,13 +12,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 import aiosqlite
-
-
-def escape_html(text: str) -> str:
-    """Escape HTML special characters to prevent XSS."""
-    if not text:
-        return ""
-    return html.escape(str(text))
 
 from database import (
     init_db,
@@ -37,6 +31,13 @@ from database import (
 )
 
 
+def escape_html(text: str) -> str:
+    """Escape HTML special characters to prevent XSS."""
+    if text is None or text == "":
+        return ""
+    return html.escape(str(text))
+
+
 STOPWORDS = frozenset({
     'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
     'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
@@ -44,7 +45,7 @@ STOPWORDS = frozenset({
     'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
     'before', 'after', 'above', 'below', 'between', 'out', 'off', 'over',
     'under', 'again', 'further', 'then', 'once', 'and', 'but', 'or', 'nor',
-    'not', 'no', 'so', 'if', 'than', 'too', 'very', 'just', 'about', 'also',
+    'not', 'no', 'so', 'if', 'too', 'very', 'just', 'about', 'also',
     'this', 'that', 'these', 'those', 'it', 'its', 'my', 'your', 'his',
     'her', 'our', 'their', 'what', 'which', 'who', 'whom', 'where', 'when',
     'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most',
@@ -62,15 +63,15 @@ def analyze_trader_keywords(raw_text: str) -> dict:
     
     # Word frequency analysis
     words = raw_text.lower().split()
-    word_freq = {}
-    for word in words:
-        clean = ''.join(c for c in word if c.isalnum())
-        if clean and len(clean) > 2 and clean not in STOPWORDS:
-            word_freq[clean] = word_freq.get(clean, 0) + 1
+    word_freq = Counter(
+        clean for word in words
+        if (clean := ''.join(c for c in word if c.isalnum()))
+        and len(clean) > 2
+        and clean not in STOPWORDS
+    )
     
     # Top keywords by frequency
-    sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
-    keywords = [w for w, _ in sorted_words[:10]]
+    keywords = [w for w, _ in word_freq.most_common(10)]
     
     # Abbreviation-aware sentence splitting
     sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', raw_text)
@@ -410,18 +411,17 @@ async def analyze_trader(trader_id: str):
         trader = await get_trader(conn, trader_id)
         if not trader:
             raise HTTPException(404, "Trader not found")
-    
-    raw_text = trader.get('raw_text', '') or ''
-    analysis = analyze_trader_keywords(raw_text)
-    
-    # Save keywords to research_notes (append, don't overwrite)
-    async with aiosqlite.connect(DB_PATH) as conn:
+        
+        raw_text = trader.get('raw_text', '') or ''
+        analysis = analyze_trader_keywords(raw_text)
+        
         existing_notes = trader.get('research_notes', '') or ''
         keyword_line = f"\n\n[Auto Analysis {datetime.utcnow().strftime('%Y-%m-%d')}] Keywords: {', '.join(analysis['keywords'])}"
         await update_trader(conn, trader_id, {
             'research_notes': existing_notes + keyword_line
         })
     
+    analysis["summary"] = escape_html(analysis["summary"])
     return analysis
 
 
