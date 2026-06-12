@@ -142,6 +142,12 @@ const Utils = {
   platformColor(p) { const map={'eToro':'var(--platform-etoro)','MQL5':'var(--platform-mql5)','TradingView':'var(--platform-tradingview)','ZuluTrade':'var(--platform-zulutrade)','Myfxbook':'var(--platform-myfxbook)','Darwinex':'var(--platform-darwinex)','NAGA':'var(--platform-naga)','FXBlue':'var(--platform-fxblue)','Telegram':'var(--platform-telegram)','Twitter':'var(--platform-twitter)','Discord':'var(--platform-discord)','Manual':'var(--platform-manual)'}; return map[p]||'var(--platform-manual)'; },
   fitColor(s){ return s>=70?'var(--sys-green)':s>=50?'var(--sys-yellow)':'var(--sys-red)'; },
   statusColor(s){ const m={'Trader Found':'var(--label-quaternary)','Researching':'var(--sys-blue)','Contacted':'var(--sys-teal)','Replied':'var(--sys-green)','Interested':'var(--sys-green)','Meeting Scheduled':'var(--sys-orange)','Negotiation':'var(--sys-purple)','Onboarding':'#a17dc9','Active Creator':'var(--sys-green)','Rejected':'var(--sys-red)','No Response':'var(--label-quaternary)'}; return m[s]||'var(--label-quaternary)'; },
+  escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  },
   parseTraderProfile(text) {
     const result = {trader_name:'',platform:'Manual',location:'',language:'',strategy_type:'',twitter:'',telegram:'',discord:'',youtube:'',website:'',monthly_return:0,yearly_return:0,followers:0,copiers:0,assets_under_management:0,maximum_drawdown:0,risk_score:0};
     const lines = text.trim().split('\n');
