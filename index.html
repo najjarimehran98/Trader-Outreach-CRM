@@ -143,6 +143,15 @@ const Utils = {
   platformColor(p) { const map={'eToro':'var(--platform-etoro)','MQL5':'var(--platform-mql5)','TradingView':'var(--platform-tradingview)','ZuluTrade':'var(--platform-zulutrade)','Myfxbook':'var(--platform-myfxbook)','Darwinex':'var(--platform-darwinex)','NAGA':'var(--platform-naga)','FXBlue':'var(--platform-fxblue)','Telegram':'var(--platform-telegram)','Twitter':'var(--platform-twitter)','Discord':'var(--platform-discord)','Manual':'var(--platform-manual)'}; return map[p]||'var(--platform-manual)'; },
   fitColor(s){ return s>=70?'var(--sys-green)':s>=50?'var(--sys-yellow)':'var(--sys-red)'; },
   statusColor(s){ const m={'Trader Found':'var(--label-quaternary)','Researching':'var(--sys-blue)','Contacted':'var(--sys-teal)','Replied':'var(--sys-green)','Interested':'var(--sys-green)','Meeting Scheduled':'var(--sys-orange)','Negotiation':'var(--sys-purple)','Onboarding':'#a17dc9','Active Creator':'var(--sys-green)','Rejected':'var(--sys-red)','No Response':'var(--label-quaternary)'}; return m[s]||'var(--label-quaternary)'; },
+  hashColor(str) {
+    let hash = 0;
+    for(let i=0; i<str.length; i++){
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      hash = hash & hash;
+    }
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 65%, 45%)`;
+  },
   escapeHtml(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -340,7 +349,7 @@ function renderTradersList(){
   list.innerHTML=filtered.map(t=>`
     <div class="surface p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-surface-raised transition-colors" onclick="navigate('trader',{traderId:'${t.id}'})">
       <div class="flex items-center gap-3">
-        <div class="platform-badge" style="background:${Utils.platformColor(t.platform)};color:${t.platform==='Manual'?'#000':'#fff'}">${t.platform}</div>
+        <div class="trader-avatar" style="background:${Utils.hashColor(t.trader_name)}">${t.trader_name.charAt(0).toUpperCase()}</div>
         <div>
           <div class="font-medium text-label">${t.trader_name}</div>
           <div class="text-xs text-label-secondary">${t.strategy_type||'No strategy'} • ${new Date(t.date_added).toLocaleDateString()}</div>
