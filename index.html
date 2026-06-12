@@ -109,7 +109,7 @@ const state = {
   currentPage: 'dashboard',
   selectedTraderId: null,
   filters: { status: 'all', platform: 'all', minFit: 0, search: '' },
-  sort: 'date_added_desc',
+  sort: 'date_added DESC',
   traders: [],
   stats: {},
   settings: {},
@@ -179,6 +179,7 @@ const Utils = {
 };
 
 let _interestDebounce = null;
+let keyboardHandler = null;
 
 const VALID_STATUSES = ['Trader Found','Researching','Contacted','Replied','Interested','Meeting Scheduled','Negotiation','Onboarding','Active Creator','Rejected','No Response'];
 const VALID_STAGES = ['Research','Outreach','Follow-up','Interview','Due Diligence','Contract','Setup','Active','Closed'];
@@ -196,11 +197,25 @@ function toggleTheme(){ document.body.classList.toggle('light-mode'); const icon
 
 function updateConnectionBanner(){ document.getElementById('conn-banner').style.display=state.serverConnected?'none':'block'; }
 
-async function pollNewTraders(){ try{ const res=await fetch('/api/traders?sort=date_added_desc'); if(!res.ok) throw new Error(); const traders=await res.json(); if(traders.length && state.lastSeenTraderId!==traders[0].id){ state.lastSeenTraderId=traders[0].id; showToast(`New trader: ${traders[0].trader_name}`); await refreshData(); } } catch(e){ state.serverConnected=false; updateConnectionBanner(); } }
+async function pollNewTraders(){ try{ const res=await fetch('/api/traders?sort=date_added%20DESC'); if(!res.ok) throw new Error(); const traders=await res.json(); if(traders.length && state.lastSeenTraderId!==traders[0].id){ state.lastSeenTraderId=traders[0].id; showToast(`New trader: ${traders[0].trader_name}`); await refreshData(); } } catch(e){ state.serverConnected=false; updateConnectionBanner(); } }
 
 async function refreshData(){ const [traders,stats,settings]=await Promise.all([API.getTraders({status:state.filters.status,platform:state.filters.platform,min_fit:state.filters.min_fit,search:state.filters.search,sort:state.sort}), API.getStats(), API.getSettings()]); state.traders=traders; state.stats=stats; state.settings=settings; updateSidebarStats(); }
 
-function navigate(page,params={}){ state.currentPage=page; state.selectedTraderId=params.traderId||null; if(page!=='traders') state.filters.search=''; render(); if(page==='traders'&&!state.traders.length) refreshData(); }
+function navigate(page,params={}){
+  state.currentPage=page;
+  state.selectedTraderId=params.traderId||null;
+  
+  if(keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+  
+  if(page!=='traders') state.filters.search='';
+  render();
+  
+  if(page==='traders'||page==='trader'){
+    setupKeyboardShortcuts();
+  }
+  
+  if(page==='traders'&&!state.traders.length) refreshData();
+}
 
 async function render(){
   document.getElementById('content').innerHTML='';
@@ -215,6 +230,51 @@ async function render(){
 }
 
 function updateNavActive(){ document.querySelectorAll('.nav-item').forEach(el=>{ el.classList.toggle('bg-surface-raised',el.dataset.page===state.currentPage||(state.currentPage==='trader'&&el.dataset.page==='traders')); el.classList.toggle('text-label',el.dataset.page!==state.currentPage); }); }
+
+function setupKeyboardShortcuts(){
+  if(keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+  
+  keyboardHandler = function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+    if(e.altKey||e.ctrlKey||e.metaKey) return;
+    
+    if(state.currentPage==='traders'){
+      const list = state.traders;
+      const idx = list.findIndex(t=>t.id===state.selectedTraderId);
+      
+      if(e.key==='j'||e.key==='ArrowDown'){
+        e.preventDefault();
+        const next = idx<list.length-1 ? idx+1 : 0;
+        state.selectedTraderId = list[next].id;
+        renderTradersList();
+      }
+      if(e.key==='k'||e.key==='ArrowUp'){
+        e.preventDefault();
+        const prev = idx>0 ? idx-1 : list.length-1;
+        state.selectedTraderId = list[prev].id;
+        renderTradersList();
+      }
+      if(e.key==='Enter'&&state.selectedTraderId){
+        navigate('trader');
+      }
+      if(e.key==='n'){
+        navigate('discovery');
+      }
+    }
+    
+    if(state.currentPage==='trader'){
+      if(e.key==='Escape'){
+        navigate('traders');
+      }
+      if(e.key==='d'){
+        const t = state.traders.find(t=>t.id===state.selectedTraderId);
+        if(t) quickStatus('Contacted');
+      }
+    }
+  };
+  
+  document.addEventListener('keydown', keyboardHandler);
+}
 
 function updateSidebarStats(){ const s=state.stats; document.getElementById('sidebar-stats').innerHTML=`<div class="text-xs text-label-tertiary uppercase font-semibold tracking-wider mb-2">Pipeline</div><div class="text-2xl font-bold text-label">${s.total||0}</div><div class="text-xs text-label-secondary">Traders total</div><div class="text-sm text-label-quaternary mt-2">Active: ${s.active_pipeline||0}</div><div class="text-sm text-label-quaternary">Reply rate: ${s.reply_rate||0}%</div><div class="text-sm text-label-quaternary">Outreach: ${s.total_outreach||0}</div>`; }
 
@@ -264,7 +324,15 @@ function renderTradersList(){
       <option value="all">All Platforms</option>${platformOpts}</select>
     <div class="flex items-center gap-2"><label class="text-sm text-label-secondary">Min Fit:</label><input type="range" id="filter-fit" min="0" max="100" value="${state.filters.minFit}" oninput="state.filters.minFit=parseInt(this.value);renderTradersList();" class="accent-accent"><span class="text-sm text-label w-8">${state.filters.minFit}</span></div>
     <input type="text" id="search-input" placeholder="Search..." value="${state.filters.search}" oninput="state.filters.search=this.value;renderTradersList();" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 w-48 outline-none focus:ring-1 ring-accent">
-  </div><div class="space-y-2" id="traders-list"></div></div>`;
+    <select id="sort-select" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 outline-none" onchange="state.sort=this.value;refreshData().then(()=>renderTradersList())">
+      <option value="date_added DESC" ${state.sort==='date_added DESC'?'selected':''}>Newest First</option>
+      <option value="date_added ASC" ${state.sort==='date_added ASC'?'selected':''}>Oldest First</option>
+      <option value="fit_score DESC" ${state.sort==='fit_score DESC'?'selected':''}>Highest Fit</option>
+      <option value="fit_score ASC" ${state.sort==='fit_score ASC'?'selected':''}>Lowest Fit</option>
+      <option value="priority_score DESC" ${state.sort==='priority_score DESC'?'selected':''}>Highest Priority</option>
+      <option value="last_contact_date DESC" ${state.sort==='last_contact_date DESC'?'selected':''}>Recently Contacted</option>
+    </select>
+  </div><div class="text-label-quaternary text-xs mt-2"><span class="kbd">j</span><span class="kbd">k</span> navigate • <span class="kbd">Enter</span> open • <span class="kbd">n</span> new • <span class="kbd">d</span> mark contacted</div><div class="space-y-2" id="traders-list"></div></div>`;
   document.getElementById('content').innerHTML=html;
   const list=document.getElementById('traders-list');
   const filtered=state.traders.filter(t=>state.filters.search===''||[t.trader_name,t.profile_url,t.research_notes,t.tags].some(f=>f&&f.toLowerCase().includes(state.filters.search.toLowerCase())));
