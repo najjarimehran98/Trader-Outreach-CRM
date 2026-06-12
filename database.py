@@ -2,8 +2,11 @@ import aiosqlite
 import json
 import time
 import random
+import logging
 from datetime import datetime
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = Path(__file__).parent / "traders.db"
 
@@ -37,10 +40,30 @@ def calculate_fit_score(trader, weights):
 async def init_db():
     """Initialize database: create tables and set default settings."""
     async with aiosqlite.connect(DB_PATH) as db:
-        # Create traders and outreach_logs tables
+        # Create base tables
         await db.executescript(MIGRATION_SQL)
         # Settings table
         await db.execute(CREATE_SETTINGS_TABLE)
+        # Migration version tracking
+        await db.executescript((Path(__file__).parent / "migrations" / "003_add_migration_version.sql").read_text())
+        
+        # Run pending migrations with version tracking
+        migrations = [
+            ("002", "002_add_parity_fields.sql"),
+        ]
+        cursor = await db.execute("SELECT version FROM schema_migrations")
+        applied = {row[0] for row in await cursor.fetchall()}
+        
+        for version, filename in migrations:
+            if version not in applied:
+                sql = (Path(__file__).parent / "migrations" / filename).read_text()
+                await db.executescript(sql)
+                await db.execute(
+                    "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
+                    (version, datetime.utcnow().isoformat())
+                )
+                logger.info(f"Applied migration {version}")
+        
         # Default settings
         default_settings = [
             ('scoring_weights.audience_strength', '1.0'),
@@ -121,6 +144,10 @@ async def create_trader(conn, trader_data: dict) -> str:
             weights.setdefault(f, 1.0)
         trader_data['fit_score'] = calculate_fit_score(trader_data, weights)
 
+    # Calculate priority_score: (fit_score * interest_score) / 5
+    interest = trader_data.get('interest_score', 0)
+    trader_data['priority_score'] = int(round(trader_data.get('fit_score', 0) * interest / 5))
+
     fields = list(trader_data.keys())
     values = []
     for f in fields:
@@ -161,6 +188,12 @@ async def update_trader(conn, trader_id: str, updates: dict) -> dict:
 
         merged = {**current, **updates}
         updates['fit_score'] = calculate_fit_score(merged, weights)
+
+    if needs_recalc or 'interest_score' in updates:
+        merged = {**current, **updates}
+        fit = merged.get('fit_score', 0)
+        interest = merged.get('interest_score', 0)
+        updates['priority_score'] = int(round(fit * interest / 5))
 
     updates['date_updated'] = datetime.utcnow().isoformat()
 
