@@ -178,6 +178,8 @@ const Utils = {
   }
 };
 
+let _interestDebounce = null;
+
 const VALID_STATUSES = ['Trader Found','Researching','Contacted','Replied','Interested','Meeting Scheduled','Negotiation','Onboarding','Active Creator','Rejected','No Response'];
 const VALID_STAGES = ['Research','Outreach','Follow-up','Interview','Due Diligence','Contract','Setup','Active','Closed'];
 
@@ -314,7 +316,7 @@ async function renderTraderDetail(){
       </button>
       <div id="raw-section" class="hidden mt-4">
         <pre class="text-label-secondary text-xs whitespace-pre-wrap bg-surface-raised p-3 rounded-lg max-h-64 overflow-y-auto">${trader.raw_text}</pre>
-        <button onclick="analyzeRawText('${trader.id}')" class="mt-2 text-accent hover:underline text-sm">Run Keyword Analysis</button>
+        <button onclick="analyzeRawText('${trader.id}', event)" class="mt-2 text-accent hover:underline text-sm">Run Keyword Analysis</button>
       </div>
     </div>`;
   }
@@ -335,7 +337,7 @@ async function renderTraderDetail(){
     <div>
       <label class="text-label-secondary text-sm block mb-1">Interest Score (0-5)</label>
       <input type="range" min="0" max="5" value="${trader.interest_score||0}" 
-        oninput="document.getElementById('interest-val').textContent=this.value;state.selectedTrader.interest_score=parseInt(this.value);updatePriorityPreview();" 
+        oninput="document.getElementById('interest-val').textContent=this.value;state.selectedTrader.interest_score=parseInt(this.value);updatePriorityPreview();clearTimeout(_interestDebounce);_interestDebounce=setTimeout(()=>updateTraderField('interest_score',state.selectedTrader.interest_score),500);"
         class="w-full mb-1">
       <div class="flex justify-between text-xs"><span class="text-label-quaternary">0</span><span id="interest-val" class="text-label font-mono">${trader.interest_score||0}</span><span class="text-label-quaternary">5</span></div>
     </div>
@@ -366,21 +368,19 @@ function updatePriorityPreview(){
   document.getElementById('priority-preview').textContent = Math.round(fit * interest / 5);
 }
 
-async function analyzeRawText(traderId){
-  const btn = event.target;
+async function analyzeRawText(traderId, e){
+  const btn = e.target;
   btn.textContent = 'Analyzing...';
   btn.disabled = true;
   try {
     const res = await fetch(`/api/traders/${traderId}/analyze`, {method:'POST'});
+    if(!res.ok) throw new Error('Analysis failed');
     const data = await res.json();
     showToast(`Found ${data.keywords.length} keywords`);
     await refreshData();
     renderTraderDetail();
   } catch(e) {
     showToast('Analysis failed', 'error');
-  } finally {
-    btn.textContent = 'Run Keyword Analysis';
-    btn.disabled = false;
   }
 }
 
