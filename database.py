@@ -20,6 +20,13 @@ CREATE TABLE IF NOT EXISTS settings (
 )
 """
 
+VALID_SORT = {
+    "date_added DESC", "date_added ASC",
+    "fit_score DESC", "fit_score ASC",
+    "priority_score DESC", "priority_score ASC",
+    "last_contact_date DESC",
+}
+
 def generate_id():
     return f"{int(time.time()):x}{random.randbytes(3).hex()}"
 
@@ -105,6 +112,8 @@ async def get_traders(conn, status='all', platform='all', min_fit=0, search='', 
         params.extend([search_term, search_term, search_term, search_term])
 
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+    if sort not in VALID_SORT:
+        sort = "date_added DESC"
     sql = f"SELECT * FROM traders {where_clause} ORDER BY {sort}"
     cursor = await conn.execute(sql, params)
     rows = await cursor.fetchall()
@@ -172,6 +181,8 @@ async def update_trader(conn, trader_id: str, updates: dict) -> dict:
                      'crypto_knowledge', 'likelihood_to_join', 'brand_value']
     needs_recalc = any(field in updates for field in scoring_fields)
 
+    merged = {**current, **updates}
+
     if needs_recalc:
         # Get weights from settings (all scoring_weights keys)
         cursor = await conn.execute(
@@ -186,11 +197,10 @@ async def update_trader(conn, trader_id: str, updates: dict) -> dict:
         for field in scoring_fields:
             weights.setdefault(field, 1.0)
 
-        merged = {**current, **updates}
         updates['fit_score'] = calculate_fit_score(merged, weights)
+        merged['fit_score'] = updates['fit_score']
 
     if needs_recalc or 'interest_score' in updates:
-        merged = {**current, **updates}
         fit = merged.get('fit_score', 0)
         interest = merged.get('interest_score', 0)
         updates['priority_score'] = int(round(fit * interest / 5))
