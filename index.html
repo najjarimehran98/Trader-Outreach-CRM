@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TraderCRM — Creator Acquisition</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'deep-navy': '#000000',
+        'surface': '#1c1c1e',
+        'surface-raised': '#2c2c2e',
+        'separator': 'rgba(84, 84, 88, 0.6)',
+        'separator-opaque': '#38383a',
+        'accent': '#5e5ce6',
+        'accent-hover': '#6e6cf0',
+        'label': '#ffffff',
+        'label-secondary': 'rgba(235, 235, 245, 0.6)',
+        'label-tertiary': 'rgba(235, 235, 245, 0.3)',
+        'label-quaternary': 'rgba(235, 235, 245, 0.18)',
+        'fill-primary': 'rgba(120, 120, 128, 0.36)',
+        'fill-secondary': 'rgba(120, 120, 128, 0.24)',
+        'fill-tertiary': 'rgba(118, 118, 128, 0.12)',
+        'sys-blue': '#0a84ff',
+        'sys-green': '#30d158',
+        'sys-indigo': '#5e5ce6',
+        'sys-orange': '#ff9f0a',
+        'sys-purple': '#bf5af2',
+        'sys-red': '#ff453a',
+        'sys-teal': '#64d2ff',
+        'sys-yellow': '#ffd60a',
+        // Trader status colors
+        'status-Trader Found': 'rgba(120,120,128,0.2)',
+        'status-Researching': 'rgba(10,132,255,0.2)',
+        'status-Contacted': 'rgba(100,210,255,0.2)',
+        'status-Replied': 'rgba(48,209,88,0.2)',
+        'status-Interested': 'rgba(48,209,88,0.3)',
+        'status-Meeting Scheduled': 'rgba(255,159,10,0.2)',
+        'status-Negotiation': 'rgba(191,90,242,0.2)',
+        'status-Onboarding': 'rgba(117,84,159,0.2)',
+        'status-Active Creator': 'rgba(48,209,88,0.4)',
+        'status-Rejected': 'rgba(255,69,58,0.2)',
+        'status-No Response': 'rgba(120,120,128,0.2)',
+      }
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="design-system.css">
+</head>
+<body class="min-h-screen flex">
+<button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;">
+  <i class="fa-solid fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div id="conn-banner" class="fixed top-0 left-0 right-0 z-50 bg-red-900/80 text-red-200 text-center py-2 text-sm font-medium backdrop-blur-md" style="display:none;">
+  <i class="fa-solid fa-plug-circle-xmark mr-2"></i> Server disconnected
+</div>
+
+<div id="toasts" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<div id="modal-overlay" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-md hidden flex items-center justify-center" onclick="closeModal(event)">
+  <div id="modal-content" class="surface p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()"></div>
+</div>
+
+<aside class="sidebar min-h-screen flex flex-col sticky top-0 h-screen overflow-y-auto flex-shrink-0" id="sidebar">
+  <div class="p-5 border-b border-brd">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#818cf8] to-[#f472b6] flex items-center justify-center shadow-lg shadow-purple-500/20">
+        <i class="fa-solid fa-bullseye text-white text-sm"></i>
+      </div>
+      <span class="font-bold text-xl tracking-tight text-label">TraderCRM</span>
+    </div>
+    <p class="text-[11px] text-label-secondary mt-1.5 font-mono tracking-wide">Creator Acquisition Platform</p>
+  </div>
+  <nav class="flex-1 p-3 space-y-1" id="nav-items">
+    <a data-page="dashboard" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
+      <i class="fa-solid fa-chart-pie w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Dashboard</span>
+    </a>
+    <a data-page="traders" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
+      <i class="fa-solid fa-users w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Traders</span>
+    </a>
+    <a data-page="discovery" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
+      <i class="fa-solid fa-plus w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Discovery</span>
+    </a>
+    <a data-page="settings" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
+      <i class="fa-solid fa-gear w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Settings</span>
+    </a>
+  </nav>
+  <div class="p-4 border-t border-brd space-y-2" id="sidebar-stats"></div>
+  <div class="p-4 border-t border-brd">
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="fa-solid fa-moon" id="theme-icon"></i>
+      <span id="theme-text">Dark Mode</span>
+    </button>
+  </div>
+</aside>
+
+<main id="content" class="flex-1 overflow-y-auto min-h-screen"></main>
+
+<script>
+const state = {
+  currentPage: 'dashboard',
+  selectedTraderId: null,
+  filters: { status: 'all', platform: 'all', minFit: 0, search: '' },
+  sort: 'date_added_desc',
+  traders: [],
+  stats: {},
+  settings: {},
+  lastSeenTraderId: null,
+  serverConnected: true,
+};
+
+const API = {
+  async getTraders(params) {
+    const url = new URL('/api/traders', window.location.origin);
+    Object.keys(params).forEach(k => params[k] && url.searchParams.append(k, params[k]));
+    const res = await fetch(url);
+    return res.json();
+  },
+  async getTrader(id) { return (await fetch(`/api/traders/${id}`)).json(); },
+  async createTrader(data) { return (await fetch('/api/traders', {method:'POST',body:JSON.stringify(data)})).json(); },
+  async updateTrader(id, data) { return (await fetch(`/api/traders/${id}`, {method:'PUT',body:JSON.stringify(data)})).json(); },
+  async deleteTrader(id) { return (await fetch(`/api/traders/${id}`, {method:'DELETE'})).json(); },
+  async getStats() { return (await fetch('/api/traders/stats')).json(); },
+  async logOutreach(id, data) { return (await fetch(`/api/traders/${id}/outreach`, {method:'POST',body:JSON.stringify(data)})).json(); },
+  async getSettings() { return (await fetch('/api/settings')).json(); },
+  async saveSettings(data) { return (await fetch('/api/settings', {method:'PUT',body:JSON.stringify(data)})).json(); },
+  async exportData() { return (await fetch('/api/export')).json(); },
+  async importData(data) { return (await fetch('/api/import', {method:'POST',body:JSON.stringify(data)})).json(); },
+};
+
+const Utils = {
+  formatDate(iso) { if(!iso) return ''; const d=new Date(iso); return d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); },
+  formatRelative(iso) { if(!iso) return ''; const d=new Date(iso); const sec=Math.floor((Date.now()-d)/1000); if(sec<60) return 'just now'; if(sec<3600) return Math.floor(sec/60)+'m ago'; if(sec<86400) return Math.floor(sec/3600)+'h ago'; return Math.floor(sec/86400)+'d ago'; },
+  platformColor(p) { const map={'eToro':'var(--platform-etoro)','MQL5':'var(--platform-mql5)','TradingView':'var(--platform-tradingview)','ZuluTrade':'var(--platform-zulutrade)','Myfxbook':'var(--platform-myfxbook)','Darwinex':'var(--platform-darwinex)','NAGA':'var(--platform-naga)','FXBlue':'var(--platform-fxblue)','Telegram':'var(--platform-telegram)','Twitter':'var(--platform-twitter)','Discord':'var(--platform-discord)','Manual':'var(--platform-manual)'}; return map[p]||'var(--platform-manual)'; },
+  fitColor(s){ return s>=70?'var(--sys-green)':s>=50?'var(--sys-yellow)':'var(--sys-red)'; },
+  statusColor(s){ const m={'Trader Found':'var(--label-quaternary)','Researching':'var(--sys-blue)','Contacted':'var(--sys-teal)','Replied':'var(--sys-green)','Interested':'var(--sys-green)','Meeting Scheduled':'var(--sys-orange)','Negotiation':'var(--sys-purple)','Onboarding':'#a17dc9','Active Creator':'var(--sys-green)','Rejected':'var(--sys-red)','No Response':'var(--label-quaternary)'}; return m[s]||'var(--label-quaternary)'; },
+  parseTraderProfile(text) {
+    const result = {trader_name:'',platform:'Manual',location:'',language:'',strategy_type:'',twitter:'',telegram:'',discord:'',youtube:'',website:'',monthly_return:0,yearly_return:0,followers:0,copiers:0,assets_under_management:0,maximum_drawdown:0,risk_score:0};
+    const lines = text.trim().split('\n');
+    for(let line of lines){
+      line=line.trim();
+      if(!line||!line.includes(':'))continue;
+      const [k,...v]=line.split(':'); const key=k.trim().toLowerCase(); const val=v.join(':').trim();
+      if(key.includes('trader')||key.includes('name')) result.trader_name=val;
+      else if(key.includes('platform')) result.platform=val;
+      else if(key.includes('location')) result.location=val;
+      else if(key.includes('language')) result.language=val;
+      else if(key.includes('strategy')) result.strategy_type=val;
+      else if(key.includes('twitter')) result.twitter=val.replace('@','');
+      else if(key.includes('telegram')) result.telegram=val;
+      else if(key.includes('discord')) result.discord=val;
+      else if(key.includes('youtube')) result.youtube=val;
+      else if(key.includes('website')||key.includes('url')) result.website=val;
+      else if(key.includes('monthly')&&key.includes('return')){ const m=val.match(/[-+]?[\d,.]+%?/); if(m) result.monthly_return=parseFloat(m[0].replace('%','').replace(',','')); }
+      else if(key.includes('yearly')&&key.includes('return')){ const m=val.match(/[-+]?[\d,.]+%?/); if(m) result.yearly_return=parseFloat(m[0].replace('%','').replace(',','')); }
+      else if(key.includes('followers')){ const m=val.replace(/,/g,'').match(/\d+/); if(m) result.followers=parseInt(m[0]); }
+      else if(key.includes('copiers')){ const m=val.replace(/,/g,'').match(/\d+/); if(m) result.copiers=parseInt(m[0]); }
+      else if(key.includes('aum')||key.includes('assets')){ const m=val.replace(/,/g,'').match(/[\d,.]+/); if(m) result.assets_under_management=parseFloat(m[0]); }
+      else if(key.includes('drawdown')){ const m=val.match(/[\d,.]+%?/); if(m) result.maximum_drawdown=parseFloat(m[0].replace('%','')); }
+      else if(key.includes('risk')&&key.includes('score')){ const m=val.match(/\d+/); if(m) result.risk_score=parseInt(m[0]); }
+    }
+    return result;
+  }
+};
+
+const VALID_STATUSES = ['Trader Found','Researching','Contacted','Replied','Interested','Meeting Scheduled','Negotiation','Onboarding','Active Creator','Rejected','No Response'];
+const VALID_STAGES = ['Research','Outreach','Follow-up','Interview','Due Diligence','Contract','Setup','Active','Closed'];
+
+function setState(updates){ Object.assign(state,updates); render(); }
+
+function showToast(msg, type='info'){ const el=document.createElement('div'); el.className=`surface border-l-4 ${type==='error'?'border-sys-red':'border-sys-green'} p-3 shadow-lg text-sm font-medium animate-fade-in`; el.innerHTML=msg; document.getElementById('toasts').appendChild(el); setTimeout(()=>el.remove(),3000); }
+
+function showModal(content){ document.getElementById('modal-content').innerHTML=content; document.getElementById('modal-overlay').classList.remove('hidden'); }
+function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); }
+
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); document.querySelector('.mobile-toggle').style.display = document.getElementById('sidebar').classList.contains('open') ? 'flex' : 'none'; }
+
+function toggleTheme(){ document.body.classList.toggle('light-mode'); const icon=document.getElementById('theme-icon'); const txt=document.getElementById('theme-text'); if(document.body.classList.contains('light-mode')){ icon.className='fa-solid fa-sun'; txt.textContent='Light Mode'; } else { icon.className='fa-solid fa-moon'; txt.textContent='Dark Mode'; } }
+
+function updateConnectionBanner(){ document.getElementById('conn-banner').style.display=state.serverConnected?'none':'block'; }
+
+async function pollNewTraders(){ try{ const res=await fetch('/api/traders?sort=date_added_desc'); if(!res.ok) throw new Error(); const traders=await res.json(); if(traders.length && state.lastSeenTraderId!==traders[0].id){ state.lastSeenTraderId=traders[0].id; showToast(`New trader: ${traders[0].trader_name}`); await refreshData(); } } catch(e){ state.serverConnected=false; updateConnectionBanner(); } }
+
+async function refreshData(){ const [traders,stats,settings]=await Promise.all([API.getTraders({status:state.filters.status,platform:state.filters.platform,min_fit:state.filters.min_fit,search:state.filters.search,sort:state.sort}), API.getStats(), API.getSettings()]); state.traders=traders; state.stats=stats; state.settings=settings; updateSidebarStats(); }
+
+function navigate(page,params={}){ state.currentPage=page; state.selectedTraderId=params.traderId||null; if(page!=='traders') state.filters.search=''; render(); if(page==='traders'&&!state.traders.length) refreshData(); }
+
+async function render(){
+  document.getElementById('content').innerHTML='';
+  switch(state.currentPage){
+    case 'dashboard': renderDashboard(); break;
+    case 'traders': renderTradersList(); break;
+    case 'trader': await renderTraderDetail(); break;
+    case 'discovery': renderDiscovery(); break;
+    case 'settings': renderSettings(); break;
+  }
+  updateNavActive();
+}
+
+function updateNavActive(){ document.querySelectorAll('.nav-item').forEach(el=>{ el.classList.toggle('bg-surface-raised',el.dataset.page===state.currentPage||(state.currentPage==='trader'&&el.dataset.page==='traders')); el.classList.toggle('text-label',el.dataset.page!==state.currentPage); }); }
+
+function updateSidebarStats(){ const s=state.stats; document.getElementById('sidebar-stats').innerHTML=`<div class="text-xs text-label-tertiary uppercase font-semibold tracking-wider mb-2">Pipeline</div><div class="text-2xl font-bold text-label">${s.total||0}</div><div class="text-xs text-label-secondary">Traders total</div><div class="text-sm text-label-quaternary mt-2">Active: ${s.active_pipeline||0}</div><div class="text-sm text-label-quaternary">Reply rate: ${s.reply_rate||0}%</div><div class="text-sm text-label-quaternary">Outreach: ${s.total_outreach||0}</div>`; }
+
+// ========== PAGES ==========
+
+function renderDashboard(){
+  const {total=0,active_pipeline=0,total_outreach=0,reply_rate=0,by_platform={},by_status={},conversion_rate=0}=state.stats;
+  const platforms=Object.entries(by_platform).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const statusOrder=['Trader Found','Researching','Contacted','Replied','Interested','Meeting Scheduled','Negotiation','Onboarding','Active Creator','Rejected','No Response'];
+  const highPriority=state.traders.filter(t=>t.fit_score>=70).slice(0,5);
+  let html=`<div class="p-6"><h1 class="text-2xl font-bold mb-6">Dashboard</h1><div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">`;
+  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${total}</div><div class="text-sm text-label-secondary">Total Traders</div></div>`;
+  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${active_pipeline}</div><div class="text-sm text-label-secondary">Active Pipeline</div></div>`;
+  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${total_outreach}</div><div class="text-sm text-label-secondary">Outreach Attempts</div></div>`;
+  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label" style="color:${Utils.fitColor(reply_rate)}">${reply_rate}%</div><div class="text-sm text-label-secondary">Reply Rate</div></div></div>`;
+  html+=`<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Pipeline Funnel</h2><div class="space-y-3">`;
+  let cumulative=0;
+  statusOrder.forEach(st=>{
+    const count=by_status[st]||0; const pct=total>0?count/total*100:0; cumulative+=count;
+    html+=`<div><div class="flex justify-between text-sm mb-1"><span class="text-label">${st}</span><span class="text-label-secondary">${count}</span></div><div class="h-2 rounded-full bg-gray-700 overflow-hidden"><div class="h-full bg-sys-blue transition-all duration-500" style="width:${pct}%"></div></div></div>`;
+  });
+  html+=`</div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Platform Distribution</h2><div class="space-y-3">`;
+  platforms.forEach(([p,c])=>{ const pct=total>0?c/total*100:0; html+=`<div><div class="flex justify-between text-sm mb-1"><span class="platform-badge" style="background:${Utils.platformColor(p)};color:${p==='Manual'?'#000':'#fff'}">${p}</span><span class="text-label-secondary">${c}</span></div><div class="h-2 rounded-full bg-gray-700 overflow-hidden"><div class="h-full transition-all duration-500" style="width:${pct}%;background:${Utils.platformColor(p)}"></div></div></div>`; });
+  html+=`</div></div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">High Priority Traders (Fit ≥70)</h2>`+ (highPriority.length ? highPriority.map(t=>`
+    <div class="py-3 border-b border-brd last:border-0 flex justify-between items-center">
+      <div>
+        <div class="font-medium text-label">${t.trader_name}</div>
+        <div class="text-sm text-label-secondary"><span class="platform-badge text-xs" style="background:${Utils.platformColor(t.platform)};color:${t.platform==='Manual'?'#000':'#fff'}">${t.platform}</span> • ${t.followers?.toLocaleString()} followers</div>
+      </div>
+      <div class="text-right">
+        <div class="font-bold" style="color:${Utils.fitColor(t.fit_score)}">${t.fit_score}%</div>
+        <div class="text-xs text-label-secondary">${t.status}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="text-label-secondary text-sm">No high priority traders yet.</div>') + `</div></div>`;
+  document.getElementById('content').appendChild(document.createElement('div')).innerHTML=html;
+}
+
+function renderTradersList(){
+  const statusOpts=VALID_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join('');
+  const platformOpts=JSON.parse(state.settings['platforms.enabled']||'[]').map(p=>`<option value="${p}">${p}</option>`).join('');
+  let html=`<div class="p-6"><div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Traders</h1><button onclick="navigate('discovery')" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"><i class="fa-solid fa-plus mr-2"></i>Add Trader</button></div>
+  <div class="surface rounded-2xl p-4 mb-6 flex flex-wrap gap-4 items-center">
+    <select id="filter-status" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 border-none outline-none" onchange="state.filters.status=this.value;renderTradersList();">
+      <option value="all">All Statuses</option>${statusOpts}</select>
+    <select id="filter-platform" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 border-none outline-none" onchange="state.filters.platform=this.value;renderTradersList();">
+      <option value="all">All Platforms</option>${platformOpts}</select>
+    <div class="flex items-center gap-2"><label class="text-sm text-label-secondary">Min Fit:</label><input type="range" id="filter-fit" min="0" max="100" value="${state.filters.minFit}" oninput="state.filters.minFit=parseInt(this.value);renderTradersList();" class="accent-accent"><span class="text-sm text-label w-8">${state.filters.minFit}</span></div>
+    <input type="text" id="search-input" placeholder="Search..." value="${state.filters.search}" oninput="state.filters.search=this.value;renderTradersList();" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 w-48 outline-none focus:ring-1 ring-accent">
+  </div><div class="space-y-2" id="traders-list"></div></div>`;
+  document.getElementById('content').innerHTML=html;
+  const list=document.getElementById('traders-list');
+  const filtered=state.traders.filter(t=>state.filters.search===''||[t.trader_name,t.profile_url,t.research_notes,t.tags].some(f=>f&&f.toLowerCase().includes(state.filters.search.toLowerCase())));
+  if(!filtered.length){ list.innerHTML='<div class="p-8 text-center text-label-secondary">No traders found matching criteria.</div>'; return; }
+  list.innerHTML=filtered.map(t=>`
+    <div class="surface p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-surface-raised transition-colors" onclick="navigate('trader',{traderId:'${t.id}'})">
+      <div class="flex items-center gap-3">
+        <div class="platform-badge" style="background:${Utils.platformColor(t.platform)};color:${t.platform==='Manual'?'#000':'#fff'}">${t.platform}</div>
+        <div>
+          <div class="font-medium text-label">${t.trader_name}</div>
+          <div class="text-xs text-label-secondary">${t.strategy_type||'No strategy'} • ${new Date(t.date_added).toLocaleDateString()}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="text-right">
+          <div class="font-bold text-sm" style="color:${Utils.fitColor(t.fit_score)}">${t.fit_score}%</div>
+          <div class="text-xs text-label-secondary">Fit</div>
+        </div>
+        <div class="text-right" style="color:${Utils.statusColor(t.status)}">
+          <div class="text-sm font-medium">${t.status}</div>
+          <div class="text-xs text-label-secondary">Last contact: ${Utils.formatRelative(t.last_contact_date)}</div>
+        </div>
+        <button class="text-label-secondary hover:text-label p-2" title="Log Outreach" onclick="event.stopPropagation();showOutreachModal('${t.id}')"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function renderTraderDetail(){
+  let trader=state.traders.find(t=>t.id===state.selectedTraderId);
+  if(!trader && state.selectedTraderId){
+    try{ trader=await API.getTrader(state.selectedTraderId); }catch(e){ trader=null; }
+  }
+  if(!trader){ showToast('Trader not found','error'); navigate('traders'); return; }
+  state.selectedTrader=trader;
+  const weights={}; const rawW=state.settings; ['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].forEach(k=>weights[k]=parseFloat(rawW[`scoring_weights.${k}`])||1.0);
+  const fitScore=trader.fit_score||0;
+  function makeSlider(label,field,min=0,max=10){ const val=trader[field]||0; return `<div class="mb-4"><div class="flex justify-between text-sm mb-1"><label class="text-label-secondary">${label}</label><span class="text-label font-mono">${val}/10</span></div><input type="range" min="${min}" max="${max}" value="${val}" data-field="${field}" class="score-slider w-full h-2 rounded-full appearance-none bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent" oninput="this.nextElementSibling.textContent=this.value;state.selectedTrader['${field}']=parseInt(this.value);calculatePreview();"></div>`; }
+  function calculatePreview(){ const t=state.selectedTrader; let total=0,max=0; Object.keys(weights).forEach(k=>{ total+= (t[k]||0)*weights[k]; max+=10*weights[k];}); const fit=Math.round(total/max*100); document.getElementById('fit-preview').textContent=fit+'%'; document.getElementById('fit-bar').style.width=fit+'%'; document.getElementById('fit-bar').style.background=Utils.fitColor(fit); }
+  calculatePreview();
+  let html=`<div class="p-6"><button onclick="navigate('traders')" class="mb-4 text-label-secondary hover:text-label"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Traders</button><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 space-y-6">`;
+  // Header Card
+  html+=`<div class="surface p-6 rounded-2xl"><div class="flex justify-between items-start mb-4"><div class="flex-1"><h1 class="text-2xl font-bold text-label mb-2">${trader.trader_name}</h1><div class="flex items-center gap-3"><span class="platform-badge" style="background:${Utils.platformColor(trader.platform)};color:${trader.platform==='Manual'?'#000':'#fff'}">${trader.platform}</span><a href="${trader.profile_url}" target="_blank" class="text-accent text-sm hover:underline"><i class="fa-solid fa-link mr-1"></i>Profile</a></div></div><div class="text-right"><div id="fit-display" class="text-4xl font-bold" style="color:${Utils.fitColor(fitScore)}">${fitScore}%</div><div class="text-sm text-label-secondary">Fit Score</div><select id="status-select" class="mt-2 bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('status',this.value)"><option value="">Change status</option>${VALID_STATUSES.map(s=>`<option value="${s}" ${trader.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><label class="text-label-secondary block mb-1">Location</label><div class="text-label">${trader.location||'-'}</div></div><div><label class="text-label-secondary block mb-1">Language</label><div class="text-label">${trader.language||'-'}</div></div><div><label class="text-label-secondary block mb-1">Strategy</label><div class="text-label">${trader.strategy_type||'-'}</div></div><div><label class="text-label-secondary block mb-1">Contact Method</label><div class="text-label">${trader.contact_method||'-'}</div></div></div></div>`;
+  // Performance Card
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Performance</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+  const perfFields=[['followers','Followers'],['copiers','Copiers'],['assets_under_management','AUM'],['monthly_return','Monthly %'],['yearly_return','Yearly %'],['maximum_drawdown','Max DD %'],['risk_score','Risk Score'],['trading_consistency','Consistency']];
+  perfFields.forEach(([f,lbl])=>{ const v=trader[f]; if(f.includes('return')||f.includes('drawdown')) html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label font-mono">${v>0?'+':''}${v?parseFloat(v).toFixed(1):'0'}%</div></div>`; else if(f==='assets_under_management') html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label font-mono">$${(v/1000000).toFixed(1)}M</div></div>`; else if(f==='risk_score'||f==='trading_consistency') html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label">${v}/10</div></div>`; else html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label">${v?.toLocaleString()||0}</div></div>`; });
+  html+=`</div></div>`;
+  // Social Links Card
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Social Links</h2><div class="grid grid-cols-2 md:grid-cols-3 gap-4">`;
+  ['twitter','telegram','discord','youtube','website'].forEach(plat=>{ const url=trader[plat]; html+=`<div><label class="text-label-secondary text-xs">${plat.charAt(0).toUpperCase()+plat.slice(1)}</label><div>${url?`<a href="${url.startsWith('http')?url:'https://'+url}" target="_blank" class="text-accent text-sm hover:underline truncate block">${url}</a>`:'<span class="text-label-quaternary text-sm">-</span>'}</div></div>`; });
+  html+=`</div></div>`;
+  // Scoring Card
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Scoring</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].map(f=>makeSlider(f.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase()),f)).join('')}</div>
+<div class="mt-6 p-4 bg-surface-raised rounded-xl"><div class="flex justify-between items-center mb-2"><span class="font-medium text-label">Calculated Fit Score</span><span id="fit-preview" class="text-2xl font-bold">${fitScore}%</span></div><div class="score-bar-container"><div id="fit-bar" class="score-bar-fill" style="width:${fitScore}%"></div></div><div class="text-xs text-label-secondary mt-2">Weighted average of 6 scores using settings weights</div></div></div>`;
+  // Outreach Log Card
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Outreach Activity</h2><div class="flex justify-between items-center mb-4"><span class="text-label-secondary text-sm">Total attempts: ${trader.outreach_attempts||0}</span><button onclick="showOutreachModal('${trader.id}')" class="text-accent hover:underline text-sm"><i class="fa-solid fa-plus mr-1"></i>Log Outreach</button></div><div class="space-y-2" id="outreach-list"></div></div></div></div>`; // end left col
+  // Right Sidebar
+  html+=`<div class="space-y-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Research Notes</h2><textarea id="notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('research_notes',this.value)">${trader.research_notes||''}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Tags</h2><input type="text" id="tags" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="${trader.tags||''}" onchange="updateTraderField('tags',this.value)" placeholder="comma separated"></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Quick Actions</h2><div class="grid grid-cols-2 gap-2 mb-4">${VALID_STATUSES.filter(s=>s!=='Rejected'&&s!=='No Response').map(s=>`<button onclick="quickStatus('${s}')" class="text-xs px-2 py-2 rounded-lg bg-surface-raised hover:bg-surface text-label-secondary transition">${s}</button>`).join('')}</div><button onclick="quickStatus('Rejected',true)" class="w-full bg-sys-red/20 hover:bg-sys-red/30 text-sys-red text-sm font-medium py-2 rounded-lg mb-2">Reject</button><button onclick="quickStatus('Active Creator')" class="w-full bg-sys-green/20 hover:bg-sys-green/30 text-sys-green text-sm font-medium py-2 rounded-lg">Mark Active</button></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Audit Trail</h2><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-label-secondary">Added</span><span class="text-label">${Utils.formatDate(trader.date_added)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Updated</span><span class="text-label">${Utils.formatDate(trader.date_updated)}</span></div><div class="flex justify-between"><span class="text-label-secondary">First contact</span><span class="text-label">${Utils.formatDate(trader.first_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Last contact</span><span class="text-label">${Utils.formatDate(trader.last_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Outreach attempts</span><span class="text-label">${trader.outreach_attempts||0}</span></div></div></div></div></div></div>`;
+  document.getElementById('content').innerHTML=html;
+  calculatePreview();
+  fetchOutreachLogs(trader.id);
+}
+
+function fetchOutreachLogs(traderId){ API.getTrader(traderId).then(t=>{ state.selectedTrader=t; const list=document.getElementById('outreach-list'); if(!list) return; list.innerHTML=t.outreach_logs?t.outreach_logs.map(l=>`<div class="text-sm p-2 bg-surface-raised rounded"><div class="flex justify-between mb-1"><span class="font-medium text-label">${l.method}</span><span class="text-label-tertiary text-xs">${Utils.formatDate(l.date_sent)}</span></div><div class="text-label-secondary text-sm">${l.notes}</div></div>`).join('') : '<div class="text-label-tertiary text-sm">No outreach logged yet.</div>'; }); }
+
+async function updateTraderField(field,value){ await API.updateTrader(state.selectedTraderId,{[field]:value}); state.selectedTrader[field]=value; refreshData(); }
+
+function quickStatus(status,withReason=false){ if(withReason){ const reason=prompt('Rejection reason:'); if(reason){ API.updateTrader(state.selectedTraderId,{status,rejection_reason:reason,rejection_date:new Date().toISOString()}).then(()=>{ showToast('Status updated'); refreshData().then(()=>renderTraderDetail());}); } } else { const fieldMap={'Contacted':'first_contact_date','Replied':'date_replied','Interested':'date_interested','Meeting Scheduled':'date_meeting_scheduled','Negotiation':'date_negotiation_started','Onboarding':'date_onboarded','Active Creator':'conversion_date'}; const updates={status}; if(fieldMap[status]) updates[fieldMap[status]]=new Date().toISOString(); API.updateTrader(state.selectedTraderId,updates).then(()=>{ showToast('Status updated'); refreshData().then(()=>renderTraderDetail());}); } }
+
+function showOutreachModal(traderId){ const html=`<h3 class="text-lg font-bold mb-4">Log Outreach</h3><div class="space-y-4"><div><label class="text-label-secondary text-sm block mb-2">Method</label><select id="outreach-method" class="w-full bg-surface-raised text-label text-sm rounded-lg px-3 py-2 outline-none"><option value="email">Email</option><option value="telegram">Telegram</option><option value="twitter_dm">Twitter DM</option><option value="discord">Discord</option><option value="linkedin">LinkedIn</option><option value="other">Other</option></select></div><div><label class="text-label-secondary text-sm block mb-2">Notes</label><textarea id="outreach-notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-24 outline-none" placeholder="What did you send? Any response?"></textarea></div><div class="flex gap-3 mt-4"><button onclick="submitOutreach('${traderId}')" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save</button><button onclick="closeModal()" class="bg-surface-raised hover:bg-surface text-label-secondary px-4 py-2 rounded-lg text-sm">Cancel</button></div></div>`; showModal(html); }
+
+async function submitOutreach(traderId){ const method=document.getElementById('outreach-method').value; const notes=document.getElementById('outreach-notes').value; await API.logOutreach(traderId,{method,notes}); showToast('Outreach logged'); closeModal(); refreshData().then(()=>renderTraderDetail()); }
+
+function renderDiscovery(){
+  let html=`<div class="p-6"><h1 class="text-2xl font-bold mb-6">Add Trader</h1><div class="flex gap-4 border-b border-brd mb-6"><button class="pb-2 px-1 border-b-2 border-accent font-medium text-label">Quick Paste</button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Paste Trader Profile</h2><p class="text-label-secondary text-sm mb-4">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p><textarea id="paste-text" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-64 outline-none focus:ring-1 ring-accent" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Preview & Edit</h2><div id="preview-content" class="text-label-tertiary text-sm">Paste text to see preview...</div><div class="mt-6 flex gap-3"><button id="parse-btn" onclick="parsePreview()" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Parse</button><button id="save-btn" onclick="saveParsedTrader()" class="bg-sys-green hover:bg-sys-green/90 text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Add Trader</button></div></div></div></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+let parsedTraderData={};
+
+function parsePreview(){
+  const raw=document.getElementById('paste-text').value;
+  if(!raw.trim()) return;
+  parsedTraderData=Utils.parseTraderProfile(raw);
+  renderParsedPreview();
+  document.getElementById('save-btn').disabled=false;
+}
+
+function renderParsedPreview(){
+  const p=parsedTraderData;
+  const html=`<div class="space-y-3 text-sm"><div class="grid grid-cols-2 gap-3"><div><span class="text-label-secondary">Name</span><div class="text-label font-medium">${p.trader_name||'-'}</div></div><div><span class="text-label-secondary">Platform</span><div class="text-label">${p.platform}</div></div><div><span class="text-label-secondary">Location</span><div class="text-label">${p.location||'-'}</div></div><div><span class="text-label-secondary">Strategy</span><div class="text-label">${p.strategy_type||'-'}</div></div></div><div class="grid grid-cols-3 gap-3"><div><span class="text-label-secondary">Followers</span><div class="text-label">${p.followers?.toLocaleString()}</div></div><div><span class="text-label-secondary">Copiers</span><div class="text-label">${p.copiers?.toLocaleString()}</div></div><div><span class="text-label-secondary">AUM</span><div class="text-label">$${p.assets_under_management?.toLocaleString()}</div></div></div><div class="grid grid-cols-2 gap-3"><div><span class="text-label-secondary">Monthly Return</span><div class="text-label">${p.monthly_return}%</div></div><div><span class="text-label-secondary">Yearly Return</span><div class="text-label">${p.yearly_return}%</div></div><div><span class="text-label-secondary">Max Drawdown</span><div class="text-label">${p.maximum_drawdown}%</div></div><div><span class="text-label-secondary">Risk Score</span><div class="text-label">${p.risk_score}/10</div></div></div><div class="pt-3 border-t border-brd"><span class="text-label-secondary text-xs">Social Links</span><div class="flex flex-wrap gap-2 mt-1">${[p.twitter&&`<a href="https://twitter.com/${p.twitter}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Twitter @${p.twitter}</a>` , p.telegram&&`<span class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Telegram: ${p.telegram}</span>` , p.discord&&`<span class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Discord: ${p.discord}</span>` , p.youtube&&`<a href="${p.youtube}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">YouTube</a>` , p.website&&`<a href="${p.website}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Website</a>`].filter(Boolean).join('')}</div></div></div>`;
+  document.getElementById('preview-content').innerHTML=html;
+}
+
+async function saveParsedTrader(){
+  const trader={...parsedTraderData, platform: parsedTraderData.platform||'Manual', status:'Trader Found', pipeline_stage:'Research', date_added:new Date().toISOString(), date_updated:new Date().toISOString()};
+  await API.createTrader(trader);
+  showToast('Trader added successfully');
+  navigate('traders');
+}
+
+function renderSettings(){
+  const weights={}; ['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].forEach(k=>weights[k]=parseFloat(state.settings[`scoring_weights.${k}`])||1.0);
+  const platforms=JSON.parse(state.settings['platforms.enabled']||'[]');
+  let html=`<div class="p-6 max-w-3xl"><h1 class="text-2xl font-bold mb-6">Settings</h1><div class="space-y-6">`;
+  // Scoring Weights
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Scoring Weights</h2><p class="text-label-secondary text-sm mb-4">Adjust how each factor contributes to the fit score (0 = ignore, 3 = triple weight).</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+  Object.entries(weights).forEach(([k,v])=>{ html+=`<div><label class="text-label-secondary text-sm block mb-2">${k.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase())}</label><input type="range" min="0" max="3" step="0.1" value="${v}" data-key="${k}" class="w-full mb-1" oninput="document.getElementById('val-${k}').textContent=this.value"><div class="flex justify-between text-xs"><span class="text-label-quaternary">0</span><span id="val-${k}" class="text-label font-mono">${v}</span><span class="text-label-quaternary">3</span></div></div>`; });
+  html+=`</div><button onclick="saveWeights()" class="mt-4 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save Weights</button></div>`;
+  // Platforms
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Enabled Platforms</h2><p class="text-label-secondary text-sm mb-4">Select which platforms appear in the platform filter dropdown.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-3">`;
+  const all=['Manual','Telegram','eToro','MQL5','TradingView','ZuluTrade','Myfxbook','Darwinex','NAGA','FXBlue','Twitter','Discord'];
+  all.forEach(p=>{ html+=`<label class="flex items-center gap-2 text-sm"><input type="checkbox" ${platforms.includes(p)?'checked':''} onchange="togglePlatform('${p}',this.checked)" class="accent-accent"><span class="${platforms.includes(p)?'text-label':'text-label-quaternary'}">${p}</span></label>`; });
+  html+=`</div><button onclick="savePlatforms()" class="mt-4 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save Platforms</button></div>`;
+  // Data Management
+  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Data Management</h2><div class="space-y-3"><button onclick="downloadSample()" class="w-full text-left bg-surface-raised hover:bg-surface p-3 rounded-lg text-label-secondary text-sm">Download Sample Data (JSON)</button><div class="flex gap-2"><button onclick="importData()" class="flex-1 bg-surface-raised hover:bg-surface p-3 rounded-lg text-label-secondary text-sm">Import JSON</button><button onclick="clearAllData()" class="flex-1 bg-sys-red/20 hover:bg-sys-red/30 text-sys-red p-3 rounded-lg text-sm">Clear All Data</button></div></div></div></div></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+async function saveWeights(){ const w={}; document.querySelectorAll('input[data-key]').forEach(inp=>w[inp.dataset.key]=parseFloat(inp.value)); const updates={}; Object.entries(w).forEach(([k,v])=>updates[`scoring_weights.${k}`]=v.toString()); await API.saveSettings(updates); showToast('Weights saved'); }
+function togglePlatform(p,checked){ const current=JSON.parse(state.settings['platforms.enabled']||'[]'); if(checked) current.push(p); else current.splice(current.indexOf(p),1); state.settings['platforms.enabled']=JSON.stringify([...new Set(current)]); }
+async function savePlatforms(){ await API.saveSettings({'platforms.enabled':state.settings['platforms.enabled']}); showToast('Platforms saved'); }
+function downloadSample(){ window.location.href='/sample_data/sample_traders.json'; }
+async function importData(){ const input=document.createElement('input'); input.type='file'; input.accept='.json'; input.onchange=async(e)=>{ const file=e.target.files[0]; const text=await file.text(); const data=JSON.parse(text); await API.importData(data); showToast('Data imported'); refreshData(); }; input.click(); }
+async function clearAllData(){ if(confirm('Delete ALL traders? This cannot be undone.')){ await fetch('/api/traders',{method:'DELETE'}); showToast('All data cleared'); refreshData(); } }
+
+// Init
+window.onload=async()=>{ try{ await refreshData(); state.lastSeenTraderId=state.traders[0]?.id; setInterval(pollNewTraders,10000); render(); } catch(e){ state.serverConnected=false; updateConnectionBanner(); } };
+window.onpopstate=()=>{};
+</script>
+</body>
+</html>
