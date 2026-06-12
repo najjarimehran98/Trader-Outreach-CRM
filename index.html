@@ -306,6 +306,18 @@ async function renderTraderDetail(){
   let html=`<div class="p-6"><button onclick="navigate('traders')" class="mb-4 text-label-secondary hover:text-label"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Traders</button><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 space-y-6">`;
   // Header Card
   html+=`<div class="surface p-6 rounded-2xl"><div class="flex justify-between items-start mb-4"><div class="flex-1"><h1 class="text-2xl font-bold text-label mb-2">${trader.trader_name}</h1><div class="flex items-center gap-3"><span class="platform-badge" style="background:${Utils.platformColor(trader.platform)};color:${trader.platform==='Manual'?'#000':'#fff'}">${trader.platform}</span><a href="${trader.profile_url}" target="_blank" class="text-accent text-sm hover:underline"><i class="fa-solid fa-link mr-1"></i>Profile</a></div></div><div class="text-right"><div id="fit-display" class="text-4xl font-bold" style="color:${Utils.fitColor(fitScore)}">${fitScore}%</div><div class="text-sm text-label-secondary">Fit Score</div><select id="status-select" class="mt-2 bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('status',this.value)"><option value="">Change status</option>${VALID_STATUSES.map(s=>`<option value="${s}" ${trader.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><label class="text-label-secondary block mb-1">Location</label><div class="text-label">${trader.location||'-'}</div></div><div><label class="text-label-secondary block mb-1">Language</label><div class="text-label">${trader.language||'-'}</div></div><div><label class="text-label-secondary block mb-1">Strategy</label><div class="text-label">${trader.strategy_type||'-'}</div></div><div><label class="text-label-secondary block mb-1">Contact Method</label><div class="text-label">${trader.contact_method||'-'}</div></div></div></div>`;
+  // Raw Text (collapsible)
+  if(trader.raw_text){
+    html += `<div class="surface p-6 rounded-2xl">
+      <button onclick="document.getElementById('raw-section').classList.toggle('hidden');document.getElementById('raw-chevron').classList.toggle('fa-chevron-right');document.getElementById('raw-chevron').classList.toggle('fa-chevron-down')" class="flex items-center gap-2 text-label-secondary hover:text-label text-sm">
+        <i class="fa-solid fa-chevron-right" id="raw-chevron"></i>Raw Profile Text
+      </button>
+      <div id="raw-section" class="hidden mt-4">
+        <pre class="text-label-secondary text-xs whitespace-pre-wrap bg-surface-raised p-3 rounded-lg max-h-64 overflow-y-auto">${trader.raw_text}</pre>
+        <button onclick="analyzeRawText('${trader.id}')" class="mt-2 text-accent hover:underline text-sm">Run Keyword Analysis</button>
+      </div>
+    </div>`;
+  }
   // Performance Card
   html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Performance</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
   const perfFields=[['followers','Followers'],['copiers','Copiers'],['assets_under_management','AUM'],['monthly_return','Monthly %'],['yearly_return','Yearly %'],['maximum_drawdown','Max DD %'],['risk_score','Risk Score'],['trading_consistency','Consistency']];
@@ -318,10 +330,25 @@ async function renderTraderDetail(){
   // Scoring Card
   html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Scoring</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].map(f=>makeSlider(f.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase()),f)).join('')}</div>
 <div class="mt-6 p-4 bg-surface-raised rounded-xl"><div class="flex justify-between items-center mb-2"><span class="font-medium text-label">Calculated Fit Score</span><span id="fit-preview" class="text-2xl font-bold">${fitScore}%</span></div><div class="score-bar-container"><div id="fit-bar" class="score-bar-fill" style="width:${fitScore}%"></div></div><div class="text-xs text-label-secondary mt-2">Weighted average of 6 scores using settings weights</div></div></div>`;
+  // Interest & Priority
+  html += `<div class="surface p-6 rounded-2xl"><div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="text-label-secondary text-sm block mb-1">Interest Score (0-5)</label>
+      <input type="range" min="0" max="5" value="${trader.interest_score||0}" 
+        oninput="document.getElementById('interest-val').textContent=this.value;state.selectedTrader.interest_score=parseInt(this.value);updatePriorityPreview();" 
+        class="w-full mb-1">
+      <div class="flex justify-between text-xs"><span class="text-label-quaternary">0</span><span id="interest-val" class="text-label font-mono">${trader.interest_score||0}</span><span class="text-label-quaternary">5</span></div>
+    </div>
+    <div>
+      <label class="text-label-secondary text-sm block mb-1">Priority Score</label>
+      <div id="priority-preview" class="text-2xl font-bold text-label">${trader.priority_score||0}</div>
+      <div class="text-xs text-label-secondary">fit_score × interest_score / 5</div>
+    </div>
+  </div></div>`;
   // Outreach Log Card
   html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Outreach Activity</h2><div class="flex justify-between items-center mb-4"><span class="text-label-secondary text-sm">Total attempts: ${trader.outreach_attempts||0}</span><button onclick="showOutreachModal('${trader.id}')" class="text-accent hover:underline text-sm"><i class="fa-solid fa-plus mr-1"></i>Log Outreach</button></div><div class="space-y-2" id="outreach-list"></div></div></div></div>`; // end left col
   // Right Sidebar
-  html+=`<div class="space-y-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Research Notes</h2><textarea id="notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('research_notes',this.value)">${trader.research_notes||''}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Tags</h2><input type="text" id="tags" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="${trader.tags||''}" onchange="updateTraderField('tags',this.value)" placeholder="comma separated"></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Quick Actions</h2><div class="grid grid-cols-2 gap-2 mb-4">${VALID_STATUSES.filter(s=>s!=='Rejected'&&s!=='No Response').map(s=>`<button onclick="quickStatus('${s}')" class="text-xs px-2 py-2 rounded-lg bg-surface-raised hover:bg-surface text-label-secondary transition">${s}</button>`).join('')}</div><button onclick="quickStatus('Rejected',true)" class="w-full bg-sys-red/20 hover:bg-sys-red/30 text-sys-red text-sm font-medium py-2 rounded-lg mb-2">Reject</button><button onclick="quickStatus('Active Creator')" class="w-full bg-sys-green/20 hover:bg-sys-green/30 text-sys-green text-sm font-medium py-2 rounded-lg">Mark Active</button></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Audit Trail</h2><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-label-secondary">Added</span><span class="text-label">${Utils.formatDate(trader.date_added)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Updated</span><span class="text-label">${Utils.formatDate(trader.date_updated)}</span></div><div class="flex justify-between"><span class="text-label-secondary">First contact</span><span class="text-label">${Utils.formatDate(trader.first_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Last contact</span><span class="text-label">${Utils.formatDate(trader.last_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Outreach attempts</span><span class="text-label">${trader.outreach_attempts||0}</span></div></div></div></div></div></div>`;
+  html+=`<div class="space-y-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Research Notes</h2><textarea id="notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('research_notes',this.value)">${trader.research_notes||''}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Cover Message</h2><textarea id="cover-message" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('cover_message',this.value)" placeholder="Pitch message for outreach...">${Utils.escapeHtml(trader.cover_message||'')}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Tags</h2><input type="text" id="tags" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="${trader.tags||''}" onchange="updateTraderField('tags',this.value)" placeholder="comma separated"></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Quick Actions</h2><div class="grid grid-cols-2 gap-2 mb-4">${VALID_STATUSES.filter(s=>s!=='Rejected'&&s!=='No Response').map(s=>`<button onclick="quickStatus('${s}')" class="text-xs px-2 py-2 rounded-lg bg-surface-raised hover:bg-surface text-label-secondary transition">${s}</button>`).join('')}</div><button onclick="quickStatus('Rejected',true)" class="w-full bg-sys-red/20 hover:bg-sys-red/30 text-sys-red text-sm font-medium py-2 rounded-lg mb-2">Reject</button><button onclick="quickStatus('Active Creator')" class="w-full bg-sys-green/20 hover:bg-sys-green/30 text-sys-green text-sm font-medium py-2 rounded-lg">Mark Active</button></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Outcome Tracking</h2><div class="space-y-4"><div><label class="text-label-secondary text-sm block mb-1">Response Received</label><select id="response-select" class="w-full bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('response_received',this.value)"><option value="No" ${trader.response_received==='No'?'selected':''}>No</option><option value="Yes" ${trader.response_received==='Yes'?'selected':''}>Yes</option></select></div><div><label class="text-label-secondary text-sm block mb-1">Stage Reached</label><select id="stage-select" class="w-full bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('stage_reached',this.value)"><option value="" ${!trader.stage_reached?'selected':''}>-</option>${['No Response','Screening','Interview','Final Round','N/A'].map(s=>`<option value="${s}" ${trader.stage_reached===s?'selected':''}>${s}</option>`).join('')}</select></div></div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Audit Trail</h2><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-label-secondary">Added</span><span class="text-label">${Utils.formatDate(trader.date_added)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Updated</span><span class="text-label">${Utils.formatDate(trader.date_updated)}</span></div><div class="flex justify-between"><span class="text-label-secondary">First contact</span><span class="text-label">${Utils.formatDate(trader.first_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Last contact</span><span class="text-label">${Utils.formatDate(trader.last_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Outreach attempts</span><span class="text-label">${trader.outreach_attempts||0}</span></div></div></div></div></div></div>`;
   document.getElementById('content').innerHTML=html;
   calculatePreview();
   fetchOutreachLogs(trader.id);
@@ -332,6 +359,30 @@ function fetchOutreachLogs(traderId){ API.getTrader(traderId).then(t=>{ state.se
 async function updateTraderField(field,value){ await API.updateTrader(state.selectedTraderId,{[field]:value}); state.selectedTrader[field]=value; refreshData(); }
 
 function quickStatus(status,withReason=false){ if(withReason){ const reason=prompt('Rejection reason:'); if(reason){ API.updateTrader(state.selectedTraderId,{status,rejection_reason:reason,rejection_date:new Date().toISOString()}).then(()=>{ showToast('Status updated'); refreshData().then(()=>renderTraderDetail());}); } } else { const fieldMap={'Contacted':'first_contact_date','Replied':'date_replied','Interested':'date_interested','Meeting Scheduled':'date_meeting_scheduled','Negotiation':'date_negotiation_started','Onboarding':'date_onboarded','Active Creator':'conversion_date'}; const updates={status}; if(fieldMap[status]) updates[fieldMap[status]]=new Date().toISOString(); API.updateTrader(state.selectedTraderId,updates).then(()=>{ showToast('Status updated'); refreshData().then(()=>renderTraderDetail());}); } }
+
+function updatePriorityPreview(){
+  const fit = state.selectedTrader.fit_score || 0;
+  const interest = state.selectedTrader.interest_score || 0;
+  document.getElementById('priority-preview').textContent = Math.round(fit * interest / 5);
+}
+
+async function analyzeRawText(traderId){
+  const btn = event.target;
+  btn.textContent = 'Analyzing...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/api/traders/${traderId}/analyze`, {method:'POST'});
+    const data = await res.json();
+    showToast(`Found ${data.keywords.length} keywords`);
+    await refreshData();
+    renderTraderDetail();
+  } catch(e) {
+    showToast('Analysis failed', 'error');
+  } finally {
+    btn.textContent = 'Run Keyword Analysis';
+    btn.disabled = false;
+  }
+}
 
 function showOutreachModal(traderId){ const html=`<h3 class="text-lg font-bold mb-4">Log Outreach</h3><div class="space-y-4"><div><label class="text-label-secondary text-sm block mb-2">Method</label><select id="outreach-method" class="w-full bg-surface-raised text-label text-sm rounded-lg px-3 py-2 outline-none"><option value="email">Email</option><option value="telegram">Telegram</option><option value="twitter_dm">Twitter DM</option><option value="discord">Discord</option><option value="linkedin">LinkedIn</option><option value="other">Other</option></select></div><div><label class="text-label-secondary text-sm block mb-2">Notes</label><textarea id="outreach-notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-24 outline-none" placeholder="What did you send? Any response?"></textarea></div><div class="flex gap-3 mt-4"><button onclick="submitOutreach('${traderId}')" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save</button><button onclick="closeModal()" class="bg-surface-raised hover:bg-surface text-label-secondary px-4 py-2 rounded-lg text-sm">Cancel</button></div></div>`; showModal(html); }
 
