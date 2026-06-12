@@ -1,7 +1,11 @@
 import pytest
 import tempfile
 import os
+import sys
 from pathlib import Path
+
+# Ensure project root is on Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 @pytest.fixture(autouse=True, scope="session")
