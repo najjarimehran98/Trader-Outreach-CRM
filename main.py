@@ -1,13 +1,23 @@
+import html
 import json
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 import aiosqlite
+
+
+def escape_html(text: str) -> str:
+    """Escape HTML special characters to prevent XSS."""
+    if not text:
+        return ""
+    return html.escape(str(text))
 
 from database import (
     init_db,
@@ -25,6 +35,58 @@ from database import (
     get_outreach_logs,
     DB_PATH,
 )
+
+
+STOPWORDS = frozenset({
+    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+    'should', 'may', 'might', 'shall', 'can', 'to', 'of', 'in', 'for',
+    'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'between', 'out', 'off', 'over',
+    'under', 'again', 'further', 'then', 'once', 'and', 'but', 'or', 'nor',
+    'not', 'no', 'so', 'if', 'than', 'too', 'very', 'just', 'about', 'also',
+    'this', 'that', 'these', 'those', 'it', 'its', 'my', 'your', 'his',
+    'her', 'our', 'their', 'what', 'which', 'who', 'whom', 'where', 'when',
+    'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most',
+    'other', 'some', 'such', 'only', 'own', 'same', 'than', 'here', 'there',
+})
+
+
+def analyze_trader_keywords(raw_text: str) -> dict:
+    """Extract keywords from raw text without external APIs.
+    
+    Uses word frequency analysis with abbreviation-aware sentence splitting.
+    """
+    if not raw_text or not raw_text.strip():
+        return {"keywords": [], "summary": "No text provided for analysis"}
+    
+    # Word frequency analysis
+    words = raw_text.lower().split()
+    word_freq = {}
+    for word in words:
+        clean = ''.join(c for c in word if c.isalnum())
+        if clean and len(clean) > 2 and clean not in STOPWORDS:
+            word_freq[clean] = word_freq.get(clean, 0) + 1
+    
+    # Top keywords by frequency
+    sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
+    keywords = [w for w, _ in sorted_words[:10]]
+    
+    # Abbreviation-aware sentence splitting
+    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', raw_text)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+    
+    if sentences:
+        summary = sentences[0]
+        if len(sentences) > 1:
+            summary += ' ' + sentences[1]
+    else:
+        summary = raw_text[:200]
+    
+    if len(summary) > 200:
+        summary = summary[:200] + '...'
+    
+    return {"keywords": keywords, "summary": summary}
 
 load_dotenv()
 
@@ -237,10 +299,12 @@ app = FastAPI(lifespan=lifespan)
 
 
 def _deserialize_json_fields(trader):
-    """Deserialize JSON string fields in a trader dict."""
+    """Deserialize JSON string fields and escape HTML in user content."""
     if not trader:
         return trader
-    # No JSON fields in current trader schema, but keep for future
+    # Escape HTML in raw_text to prevent XSS
+    if 'raw_text' in trader and trader['raw_text']:
+        trader['raw_text'] = escape_html(trader['raw_text'])
     return trader
 
 
@@ -335,6 +399,30 @@ async def clear_all_traders():
         await conn.execute("DELETE FROM traders")
         await conn.commit()
     return {"ok": True}
+
+
+# ===== Analysis API =====
+
+@app.post("/api/traders/{trader_id}/analyze")
+async def analyze_trader(trader_id: str):
+    async with aiosqlite.connect(DB_PATH) as conn:
+        conn.row_factory = aiosqlite.Row
+        trader = await get_trader(conn, trader_id)
+        if not trader:
+            raise HTTPException(404, "Trader not found")
+    
+    raw_text = trader.get('raw_text', '') or ''
+    analysis = analyze_trader_keywords(raw_text)
+    
+    # Save keywords to research_notes (append, don't overwrite)
+    async with aiosqlite.connect(DB_PATH) as conn:
+        existing_notes = trader.get('research_notes', '') or ''
+        keyword_line = f"\n\n[Auto Analysis {datetime.utcnow().strftime('%Y-%m-%d')}] Keywords: {', '.join(analysis['keywords'])}"
+        await update_trader(conn, trader_id, {
+            'research_notes': existing_notes + keyword_line
+        })
+    
+    return analysis
 
 
 # ===== Outreach API =====
