@@ -48,7 +48,7 @@ STOPWORDS = frozenset({
     'this', 'that', 'these', 'those', 'it', 'its', 'my', 'your', 'his',
     'her', 'our', 'their', 'what', 'which', 'who', 'whom', 'where', 'when',
     'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most',
-    'other', 'some', 'such', 'only', 'own', 'same', 'than', 'here', 'there',
+    'other', 'some', 'such', 'only', 'own', 'same', 'here', 'there',
 })
 
 
@@ -84,7 +84,7 @@ def analyze_trader_keywords(raw_text: str) -> dict:
         summary = raw_text[:200]
     
     if len(summary) > 200:
-        summary = summary[:200] + '...'
+        summary = summary[:197] + '...'
     
     return {"keywords": keywords, "summary": summary}
 
