@@ -1,4 +1,6 @@
 .env
-traders.db
+*.db
 __pycache__/
 *.pyc
+.DS_Store
+.Claude/
