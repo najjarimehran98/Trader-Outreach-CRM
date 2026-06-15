@@ -196,7 +196,7 @@ async function render(){
   updateNavActive();
 }
 
-function updateNavActive(){ document.querySelectorAll('.nav-item').forEach(el=>{ el.classList.toggle('bg-surface-raised',el.dataset.page===state.currentPage||(state.currentPage==='trader'&&el.dataset.page==='traders')); el.classList.toggle('text-label',el.dataset.page!==state.currentPage); }); }
+function updateNavActive(){ document.querySelectorAll('.nav-item').forEach(el=>{ el.classList.toggle('active',el.dataset.page===state.currentPage||(state.currentPage==='trader'&&el.dataset.page==='traders')); }); }
 
 function setupKeyboardShortcuts(){
   if(keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
