@@ -4,105 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TraderCRM — Creator Acquisition</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        'deep-navy': '#000000',
-        'surface': '#1c1c1e',
-        'surface-raised': '#2c2c2e',
-        'separator': 'rgba(84, 84, 88, 0.6)',
-        'separator-opaque': '#38383a',
-        'accent': '#5e5ce6',
-        'accent-hover': '#6e6cf0',
-        'label': '#ffffff',
-        'label-secondary': 'rgba(235, 235, 245, 0.6)',
-        'label-tertiary': 'rgba(235, 235, 245, 0.3)',
-        'label-quaternary': 'rgba(235, 235, 245, 0.18)',
-        'fill-primary': 'rgba(120, 120, 128, 0.36)',
-        'fill-secondary': 'rgba(120, 120, 128, 0.24)',
-        'fill-tertiary': 'rgba(118, 118, 128, 0.12)',
-        'sys-blue': '#0a84ff',
-        'sys-green': '#30d158',
-        'sys-indigo': '#5e5ce6',
-        'sys-orange': '#ff9f0a',
-        'sys-purple': '#bf5af2',
-        'sys-red': '#ff453a',
-        'sys-teal': '#64d2ff',
-        'sys-yellow': '#ffd60a',
-        // Trader status colors
-        'status-Trader Found': 'rgba(120,120,128,0.2)',
-        'status-Researching': 'rgba(10,132,255,0.2)',
-        'status-Contacted': 'rgba(100,210,255,0.2)',
-        'status-Replied': 'rgba(48,209,88,0.2)',
-        'status-Interested': 'rgba(48,209,88,0.3)',
-        'status-Meeting Scheduled': 'rgba(255,159,10,0.2)',
-        'status-Negotiation': 'rgba(191,90,242,0.2)',
-        'status-Onboarding': 'rgba(117,84,159,0.2)',
-        'status-Active Creator': 'rgba(48,209,88,0.4)',
-        'status-Rejected': 'rgba(255,69,58,0.2)',
-        'status-No Response': 'rgba(120,120,128,0.2)',
-      }
-    }
-  }
-}
-</script>
 <link rel="stylesheet" href="design-system.css">
 </head>
 <body class="min-h-screen flex">
 <button class="mobile-toggle" onclick="toggleSidebar()" style="display:none;">
-  <i class="fa-solid fa-bars"></i>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
 </button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-<div id="conn-banner" class="fixed top-0 left-0 right-0 z-50 bg-red-900/80 text-red-200 text-center py-2 text-sm font-medium backdrop-blur-md" style="display:none;">
-  <i class="fa-solid fa-plug-circle-xmark mr-2"></i> Server disconnected
+<div id="conn-banner" class="conn-banner" style="display:none;">
+  Server disconnected
 </div>
 
-<div id="toasts" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+<div id="toasts" style="position:fixed;top:16px;right:16px;z-index:50;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
 
-<div id="modal-overlay" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-md hidden flex items-center justify-center" onclick="closeModal(event)">
-  <div id="modal-content" class="surface p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()"></div>
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal(event)">
+  <div id="modal-content" class="modal-content" onclick="event.stopPropagation()"></div>
 </div>
 
-<aside class="sidebar min-h-screen flex flex-col sticky top-0 h-screen overflow-y-auto flex-shrink-0" id="sidebar">
-  <div class="p-5 border-b border-brd">
-    <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#818cf8] to-[#f472b6] flex items-center justify-center shadow-lg shadow-purple-500/20">
-        <i class="fa-solid fa-bullseye text-white text-sm"></i>
-      </div>
-      <span class="font-bold text-xl tracking-tight text-label">TraderCRM</span>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
     </div>
-    <p class="text-[11px] text-label-secondary mt-1.5 font-mono tracking-wide">Creator Acquisition Platform</p>
+    <div>
+      <div class="brand-name">TraderCRM</div>
+      <div class="brand-sub">Creator Acquisition</div>
+    </div>
   </div>
-  <nav class="flex-1 p-3 space-y-1" id="nav-items">
-    <a data-page="dashboard" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
-      <i class="fa-solid fa-chart-pie w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Dashboard</span>
-    </a>
-    <a data-page="traders" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
-      <i class="fa-solid fa-users w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Traders</span>
-    </a>
-    <a data-page="discovery" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
-      <i class="fa-solid fa-plus w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Discovery</span>
-    </a>
-    <a data-page="settings" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-sm transition-all hover:bg-white/5">
-      <i class="fa-solid fa-gear w-4 text-center text-xs text-label-secondary"></i> <span class="text-label">Settings</span>
-    </a>
+  <nav id="nav-items">
+    <div data-page="dashboard" onclick="navigate('dashboard')" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v9h-9"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div data-page="traders" onclick="navigate('traders')" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Traders</span>
+    </div>
+    <div data-page="discovery" onclick="navigate('discovery')" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+      <span>Discovery</span>
+    </div>
+    <div data-page="settings" onclick="navigate('settings')" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span>Settings</span>
+    </div>
   </nav>
-  <div class="p-4 border-t border-brd space-y-2" id="sidebar-stats"></div>
-  <div class="p-4 border-t border-brd">
+  <div class="sidebar-stats" id="sidebar-stats"></div>
+  <div style="padding:8px 10px;border-top:0.5px solid var(--separator);">
     <button class="theme-toggle" onclick="toggleTheme()">
-      <i class="fa-solid fa-moon" id="theme-icon"></i>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <span id="theme-text">Dark Mode</span>
     </button>
   </div>
 </aside>
 
-<main id="content" class="flex-1 overflow-y-auto min-h-screen"></main>
+<main id="content" class="flex-1" style="overflow-y:auto;min-height:100vh;padding:24px 32px;"></main>
 
 <script>
 const state = {
@@ -195,14 +153,14 @@ const VALID_STAGES = ['Research','Outreach','Follow-up','Interview','Due Diligen
 
 function setState(updates){ Object.assign(state,updates); render(); }
 
-function showToast(msg, type='info'){ const el=document.createElement('div'); el.className=`surface border-l-4 ${type==='error'?'border-sys-red':'border-sys-green'} p-3 shadow-lg text-sm font-medium animate-fade-in`; el.innerHTML=msg; document.getElementById('toasts').appendChild(el); setTimeout(()=>el.remove(),3000); }
+function showToast(msg, type='info'){ const el=document.createElement('div'); el.className='toast'; el.style.borderLeft=`3px solid ${type==='error'?'var(--sys-red)':'var(--sys-green)'}`; el.innerHTML=msg; document.getElementById('toasts').appendChild(el); setTimeout(()=>el.remove(),3000); }
 
 function showModal(content){ document.getElementById('modal-content').innerHTML=content; document.getElementById('modal-overlay').classList.remove('hidden'); }
 function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); }
 
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('open'); document.querySelector('.mobile-toggle').style.display = document.getElementById('sidebar').classList.contains('open') ? 'flex' : 'none'; }
 
-function toggleTheme(){ document.body.classList.toggle('light-mode'); const icon=document.getElementById('theme-icon'); const txt=document.getElementById('theme-text'); if(document.body.classList.contains('light-mode')){ icon.className='fa-solid fa-sun'; txt.textContent='Light Mode'; } else { icon.className='fa-solid fa-moon'; txt.textContent='Dark Mode'; } }
+function toggleTheme(){ document.body.classList.toggle('light-mode'); const icon=document.getElementById('theme-icon'); const txt=document.getElementById('theme-text'); if(document.body.classList.contains('light-mode')){ icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'; txt.textContent='Light Mode'; } else { icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'; txt.textContent='Dark Mode'; } }
 
 function updateConnectionBanner(){ document.getElementById('conn-banner').style.display=state.serverConnected?'none':'block'; }
 
@@ -285,7 +243,7 @@ function setupKeyboardShortcuts(){
   document.addEventListener('keydown', keyboardHandler);
 }
 
-function updateSidebarStats(){ const s=state.stats; document.getElementById('sidebar-stats').innerHTML=`<div class="text-xs text-label-tertiary uppercase font-semibold tracking-wider mb-2">Pipeline</div><div class="text-2xl font-bold text-label">${s.total||0}</div><div class="text-xs text-label-secondary">Traders total</div><div class="text-sm text-label-quaternary mt-2">Active: ${s.active_pipeline||0}</div><div class="text-sm text-label-quaternary">Reply rate: ${s.reply_rate||0}%</div><div class="text-sm text-label-quaternary">Outreach: ${s.total_outreach||0}</div>`; }
+function updateSidebarStats(){ const s=state.stats; document.getElementById('sidebar-stats').innerHTML=`<div class="stat-label">Pipeline</div><div class="stat-value">${s.total||0}</div><div class="stat-detail">Traders total</div><div class="stat-detail" style="margin-top:8px">Active: ${s.active_pipeline||0}</div><div class="stat-detail">Reply rate: ${s.reply_rate||0}%</div><div class="stat-detail">Outreach: ${s.total_outreach||0}</div>`; }
 
 // ========== PAGES ==========
 
@@ -294,80 +252,93 @@ function renderDashboard(){
   const platforms=Object.entries(by_platform).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const statusOrder=['Trader Found','Researching','Contacted','Replied','Interested','Meeting Scheduled','Negotiation','Onboarding','Active Creator','Rejected','No Response'];
   const highPriority=state.traders.filter(t=>t.fit_score>=70).slice(0,5);
-  let html=`<div class="p-6"><h1 class="text-2xl font-bold mb-6">Dashboard</h1><div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">`;
-  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${total}</div><div class="text-sm text-label-secondary">Total Traders</div></div>`;
-  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${active_pipeline}</div><div class="text-sm text-label-secondary">Active Pipeline</div></div>`;
-  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label">${total_outreach}</div><div class="text-sm text-label-secondary">Outreach Attempts</div></div>`;
-  html+=`<div class="surface p-4 rounded-2xl"><div class="text-3xl font-bold text-label" style="color:${Utils.fitColor(reply_rate)}">${reply_rate}%</div><div class="text-sm text-label-secondary">Reply Rate</div></div></div>`;
-  html+=`<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Pipeline Funnel</h2><div class="space-y-3">`;
-  let cumulative=0;
+
+  let html=`<div style="padding:24px"><h1 style="font-size:22px;font-weight:700;margin-bottom:24px">Dashboard</h1>`;
+
+  html+=`<div class="stats-row">`;
+  html+=`<div class="stat-card"><div class="value">${total}</div><div class="label">Total Traders</div></div>`;
+  html+=`<div class="stat-card"><div class="value">${active_pipeline}</div><div class="label">Active Pipeline</div></div>`;
+  html+=`<div class="stat-card"><div class="value">${total_outreach}</div><div class="label">Outreach Attempts</div></div>`;
+  html+=`<div class="stat-card"><div class="value" style="color:var(--sys-green)">${reply_rate}%</div><div class="label">Reply Rate</div></div>`;
+  html+=`</div>`;
+
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">`;
+
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Pipeline Funnel</h2><div style="display:flex;flex-direction:column;gap:12px">`;
   statusOrder.forEach(st=>{
-    const count=by_status[st]||0; const pct=total>0?count/total*100:0; cumulative+=count;
-    html+=`<div><div class="flex justify-between text-sm mb-1"><span class="text-label">${st}</span><span class="text-label-secondary">${count}</span></div><div class="h-2 rounded-full bg-gray-700 overflow-hidden"><div class="h-full bg-sys-blue transition-all duration-500" style="width:${pct}%"></div></div></div>`;
+    const count=by_status[st]||0; const pct=total>0?count/total*100:0;
+    html+=`<div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="color:var(--label)">${st}</span><span style="color:var(--label-secondary)">${count}</span></div><div style="height:6px;border-radius:3px;background:rgba(120,120,128,0.2);overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--sys-blue);width:${pct}%;transition:width 0.3s ease"></div></div></div>`;
   });
-  html+=`</div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Platform Distribution</h2><div class="space-y-3">`;
-  platforms.forEach(([p,c])=>{ const pct=total>0?c/total*100:0; html+=`<div><div class="flex justify-between text-sm mb-1"><span class="platform-badge" style="background:${Utils.platformColor(p)};color:${p==='Manual'?'#000':'#fff'}">${p}</span><span class="text-label-secondary">${c}</span></div><div class="h-2 rounded-full bg-gray-700 overflow-hidden"><div class="h-full transition-all duration-500" style="width:${pct}%;background:${Utils.platformColor(p)}"></div></div></div>`; });
-  html+=`</div></div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">High Priority Traders (Fit ≥70)</h2>`+ (highPriority.length ? highPriority.map(t=>`
-    <div class="py-3 border-b border-brd last:border-0 flex justify-between items-center">
-      <div>
-        <div class="font-medium text-label">${t.trader_name}</div>
-        <div class="text-sm text-label-secondary"><span class="platform-badge text-xs" style="background:${Utils.platformColor(t.platform)};color:${t.platform==='Manual'?'#000':'#fff'}">${t.platform}</span> • ${t.followers?.toLocaleString()} followers</div>
-      </div>
-      <div class="text-right">
-        <div class="font-bold" style="color:${Utils.fitColor(t.fit_score)}">${t.fit_score}%</div>
-        <div class="text-xs text-label-secondary">${t.status}</div>
-      </div>
-    </div>
-  `).join('') : '<div class="text-label-secondary text-sm">No high priority traders yet.</div>') + `</div></div>`;
-  document.getElementById('content').appendChild(document.createElement('div')).innerHTML=html;
+  html+=`</div></div>`;
+
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Platform Distribution</h2><div style="display:flex;flex-direction:column;gap:12px">`;
+  platforms.forEach(([p,c])=>{
+    const pct=total>0?c/total*100:0;
+    html+=`<div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span class="platform-badge" style="background:var(--platform-${p.toLowerCase()});color:${p==='Manual'?'#000':'#fff'}">${p}</span><span style="color:var(--label-secondary)">${c}</span></div><div style="height:6px;border-radius:3px;background:rgba(120,120,128,0.2);overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--platform-${p.toLowerCase()});width:${pct}%;transition:width 0.3s ease"></div></div></div>`;
+  });
+  html+=`</div></div>`;
+  html+=`</div>`;
+
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">High Priority Traders (Fit ≥70)</h2>`;
+  if(highPriority.length){
+    html+=`<div class="grouped-list">`;
+    highPriority.forEach(t=>{
+      html+=`<div class="list-row" onclick="navigate('trader',{traderId:'${t.id}'})">
+        <div class="avatar" style="background:var(--sys-blue)">${t.trader_name.charAt(0)}</div>
+        <div class="info"><div class="name">${t.trader_name}</div><div class="meta">${t.platform} · ${(t.followers||0).toLocaleString()} followers</div></div>
+        <span class="pill pill-green">${t.status}</span>
+        <div class="trailing"><div class="score" style="color:var(--sys-green)">${t.fit_score}%</div><div class="score-label">Fit</div></div>
+      </div>`;
+    });
+    html+=`</div>`;
+  } else {
+    html+=`<div style="color:var(--label-tertiary);font-size:13px;padding:12px 0">No high priority traders yet.</div>`;
+  }
+  html+=`</div></div>`;
+
+  document.getElementById('content').innerHTML=html;
 }
 
 function renderTradersList(){
   const statusOpts=VALID_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join('');
   const platformOpts=JSON.parse(state.settings['platforms.enabled']||'[]').map(p=>`<option value="${p}">${p}</option>`).join('');
-  let html=`<div class="p-6"><div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Traders</h1><button onclick="navigate('discovery')" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"><i class="fa-solid fa-plus mr-2"></i>Add Trader</button></div>
-  <div class="surface rounded-2xl p-4 mb-6 flex flex-wrap gap-4 items-center">
-    <select id="filter-status" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 border-none outline-none" onchange="state.filters.status=this.value;renderTradersList();">
-      <option value="all">All Statuses</option>${statusOpts}</select>
-    <select id="filter-platform" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 border-none outline-none" onchange="state.filters.platform=this.value;renderTradersList();">
-      <option value="all">All Platforms</option>${platformOpts}</select>
-    <div class="flex items-center gap-2"><label class="text-sm text-label-secondary">Min Fit:</label><input type="range" id="filter-fit" min="0" max="100" value="${state.filters.minFit}" oninput="state.filters.minFit=parseInt(this.value);renderTradersList();" class="accent-accent"><span class="text-sm text-label w-8">${state.filters.minFit}</span></div>
-    <input type="text" id="search-input" placeholder="Search..." value="${state.filters.search}" oninput="state.filters.search=this.value;renderTradersList();" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 w-48 outline-none focus:ring-1 ring-accent">
-    <select id="sort-select" class="bg-surface-raised text-label text-sm rounded-lg px-3 py-2 outline-none" onchange="state.sort=this.value;refreshData().then(()=>renderTradersList())">
-      <option value="date_added DESC" ${state.sort==='date_added DESC'?'selected':''}>Newest First</option>
-      <option value="date_added ASC" ${state.sort==='date_added ASC'?'selected':''}>Oldest First</option>
-      <option value="fit_score DESC" ${state.sort==='fit_score DESC'?'selected':''}>Highest Fit</option>
-      <option value="fit_score ASC" ${state.sort==='fit_score ASC'?'selected':''}>Lowest Fit</option>
-      <option value="priority_score DESC" ${state.sort==='priority_score DESC'?'selected':''}>Highest Priority</option>
-      <option value="last_contact_date DESC" ${state.sort==='last_contact_date DESC'?'selected':''}>Recently Contacted</option>
-    </select>
-  </div><div class="text-label-quaternary text-xs mt-2"><span class="kbd">j</span><span class="kbd">k</span> navigate • <span class="kbd">Enter</span> open • <span class="kbd">n</span> new • <span class="kbd">d</span> mark contacted</div><div class="space-y-2" id="traders-list"></div></div>`;
-  document.getElementById('content').innerHTML=html;
-  const list=document.getElementById('traders-list');
+
+  let html=`<div style="padding:24px">`;
+
+  html+=`<div class="page-header"><div><h1>Traders</h1><div class="subtitle">${state.traders.length} traders in pipeline</div></div>`;
+  html+=`<div class="actions">`;
+  html+=`<div class="search-field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input id="search-input" placeholder="Search..." value="${state.filters.search}" oninput="state.filters.search=this.value;renderTradersList();"></div>`;
+  html+=`<button onclick="navigate('discovery')" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Add Trader</button>`;
+  html+=`</div></div>`;
+
+  html+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">`;
+  html+=`<select id="filter-status" onchange="state.filters.status=this.value;renderTradersList();" style="width:auto;padding-right:28px"><option value="all">All Statuses</option>${statusOpts}</select>`;
+  html+=`<select id="filter-platform" onchange="state.filters.platform=this.value;renderTradersList();" style="width:auto;padding-right:28px"><option value="all">All Platforms</option>${platformOpts}</select>`;
+  html+=`<div style="display:flex;align-items:center;gap:6px"><label style="font-size:13px;color:var(--label-secondary)">Min Fit:</label><input type="range" id="filter-fit" min="0" max="100" value="${state.filters.minFit}" oninput="state.filters.minFit=parseInt(this.value);renderTradersList();" style="width:100px"><span style="font-size:13px;color:var(--label);min-width:24px">${state.filters.minFit}</span></div>`;
+  html+=`<div style="flex:1"></div>`;
+  html+=`<select id="sort-select" onchange="state.sort=this.value;refreshData().then(()=>renderTradersList())" style="width:auto;padding-right:28px"><option value="date_added DESC" ${state.sort==='date_added DESC'?'selected':''}>Newest First</option><option value="date_added ASC" ${state.sort==='date_added ASC'?'selected':''}>Oldest First</option><option value="fit_score DESC" ${state.sort==='fit_score DESC'?'selected':''}>Highest Fit</option><option value="fit_score ASC" ${state.sort==='fit_score ASC'?'selected':''}>Lowest Fit</option><option value="priority_score DESC" ${state.sort==='priority_score DESC'?'selected':''}>Highest Priority</option><option value="last_contact_date DESC" ${state.sort==='last_contact_date DESC'?'selected':''}>Recently Contacted</option></select>`;
+  html+=`<span style="font-size:11px;color:var(--label-tertiary)"><span class="kbd">j</span><span class="kbd">k</span> navigate · <span class="kbd">Enter</span> open · <span class="kbd">n</span> new</span>`;
+  html+=`</div>`;
+
+  html+=`<div class="grouped-list" id="traders-list">`;
   const filtered=state.traders.filter(t=>state.filters.search===''||[t.trader_name,t.profile_url,t.research_notes,t.tags].some(f=>f&&f.toLowerCase().includes(state.filters.search.toLowerCase())));
-  if(!filtered.length){ list.innerHTML='<div class="p-8 text-center text-label-secondary">No traders found matching criteria.</div>'; return; }
-  list.innerHTML=filtered.map(t=>`
-    <div class="surface p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-surface-raised transition-colors" onclick="navigate('trader',{traderId:'${t.id}'})">
-      <div class="flex items-center gap-3">
-        <div class="trader-avatar" style="background:${Utils.hashColor(t.trader_name)}">${t.trader_name.charAt(0).toUpperCase()}</div>
-        <div>
-          <div class="font-medium text-label">${t.trader_name}</div>
-          <div class="text-xs text-label-secondary">${t.strategy_type||'No strategy'} • ${new Date(t.date_added).toLocaleDateString()}</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-6">
-        <div class="text-right">
-          <div class="font-bold text-sm" style="color:${Utils.fitColor(t.fit_score)}">${t.fit_score}%</div>
-          <div class="text-xs text-label-secondary">Fit</div>
-        </div>
-        <div class="text-right" style="color:${Utils.statusColor(t.status)}">
-          <div class="text-sm font-medium">${t.status}</div>
-          <div class="text-xs text-label-secondary">Last contact: ${Utils.formatRelative(t.last_contact_date)}</div>
-        </div>
-        <button class="text-label-secondary hover:text-label p-2" title="Log Outreach" onclick="event.stopPropagation();showOutreachModal('${t.id}')"><i class="fa-solid fa-paper-plane"></i></button>
-      </div>
-    </div>
-  `).join('');
+  if(!filtered.length){
+    html+=`<div style="padding:32px;text-align:center;color:var(--label-tertiary);font-size:13px">No traders found matching criteria.</div>`;
+  } else {
+    filtered.forEach(t=>{
+      const pillClass=t.status==='Replied'||t.status==='Interested'?'pill-green':t.status==='Contacted'?'pill-blue':t.status==='Negotiation'||t.status==='Onboarding'?'pill-purple':t.status==='Rejected'?'pill-red':t.status==='Meeting Scheduled'?'pill-orange':'pill-gray';
+      html+=`<div class="list-row" onclick="navigate('trader',{traderId:'${t.id}'})">
+        <div class="avatar" style="background:var(--sys-blue)">${t.trader_name.charAt(0)}</div>
+        <div class="info"><div class="name">${t.trader_name}</div><div class="meta">${t.strategy_type||'No strategy'} · ${new Date(t.date_added).toLocaleDateString()}</div></div>
+        <span class="pill ${pillClass}">${t.status}</span>
+        <div class="trailing"><div class="score" style="color:${t.fit_score>=70?'var(--sys-green)':t.fit_score>=50?'var(--sys-orange)':'var(--sys-red)'}">${t.fit_score}%</div><div class="score-label">Fit</div></div>
+        <div style="color:var(--label-tertiary);font-size:11px;text-align:right;min-width:60px">${Utils.formatRelative(t.last_contact_date)}</div>
+      </div>`;
+    });
+  }
+  html+=`</div></div>`;
+
+  document.getElementById('content').innerHTML=html;
 }
 
 async function renderTraderDetail(){
@@ -379,61 +350,61 @@ async function renderTraderDetail(){
   state.selectedTrader=trader;
   const weights={}; const rawW=state.settings; ['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].forEach(k=>weights[k]=parseFloat(rawW[`scoring_weights.${k}`])||1.0);
   const fitScore=trader.fit_score||0;
-  function makeSlider(label,field,min=0,max=10){ const val=trader[field]||0; return `<div class="mb-4"><div class="flex justify-between text-sm mb-1"><label class="text-label-secondary">${label}</label><span class="text-label font-mono">${val}/10</span></div><input type="range" min="${min}" max="${max}" value="${val}" data-field="${field}" class="score-slider w-full h-2 rounded-full appearance-none bg-gray-700 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent" oninput="this.nextElementSibling.textContent=this.value;state.selectedTrader['${field}']=parseInt(this.value);calculatePreview();"></div>`; }
+  function makeSlider(label,field,min=0,max=10){ const val=trader[field]||0; return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><label style="color:var(--label-secondary)">${label}</label><span style="color:var(--label);font-family:var(--font-mono)">${val}/10</span></div><input type="range" min="${min}" max="${max}" value="${val}" data-field="${field}" style="width:100%" oninput="this.nextElementSibling.textContent=this.value;state.selectedTrader['${field}']=parseInt(this.value);calculatePreview();"></div>`; }
   function calculatePreview(){ const t=state.selectedTrader; let total=0,max=0; Object.keys(weights).forEach(k=>{ total+= (t[k]||0)*weights[k]; max+=10*weights[k];}); const fit=Math.round(total/max*100); document.getElementById('fit-preview').textContent=fit+'%'; document.getElementById('fit-bar').style.width=fit+'%'; document.getElementById('fit-bar').style.background=Utils.fitColor(fit); }
   calculatePreview();
-  let html=`<div class="p-6"><button onclick="navigate('traders')" class="mb-4 text-label-secondary hover:text-label"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Traders</button><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 space-y-6">`;
+  let html=`<div style="padding:24px"><button onclick="navigate('traders')" style="margin-bottom:16px;color:var(--label-secondary);border:none;background:none;cursor:pointer;font-family:inherit;font-size:13px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>Back to Traders</button><div style="display:grid;grid-template-columns:2fr 1fr;gap:20px"><div style="display:flex;flex-direction:column;gap:20px">`;
   // Header Card
-  html+=`<div class="surface p-6 rounded-2xl"><div class="flex justify-between items-start mb-4"><div class="flex-1"><h1 class="text-2xl font-bold text-label mb-2">${trader.trader_name}</h1><div class="flex items-center gap-3"><span class="platform-badge" style="background:${Utils.platformColor(trader.platform)};color:${trader.platform==='Manual'?'#000':'#fff'}">${trader.platform}</span><a href="${trader.profile_url}" target="_blank" class="text-accent text-sm hover:underline"><i class="fa-solid fa-link mr-1"></i>Profile</a></div></div><div class="text-right"><div id="fit-display" class="text-4xl font-bold" style="color:${Utils.fitColor(fitScore)}">${fitScore}%</div><div class="text-sm text-label-secondary">Fit Score</div><select id="status-select" class="mt-2 bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('status',this.value)"><option value="">Change status</option>${VALID_STATUSES.map(s=>`<option value="${s}" ${trader.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><label class="text-label-secondary block mb-1">Location</label><div class="text-label">${trader.location||'-'}</div></div><div><label class="text-label-secondary block mb-1">Language</label><div class="text-label">${trader.language||'-'}</div></div><div><label class="text-label-secondary block mb-1">Strategy</label><div class="text-label">${trader.strategy_type||'-'}</div></div><div><label class="text-label-secondary block mb-1">Contact Method</label><div class="text-label">${trader.contact_method||'-'}</div></div></div></div>`;
+  html+=`<div class="surface" style="padding:20px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div style="flex:1"><h1 style="font-size:22px;font-weight:700;color:var(--label);margin-bottom:8px">${trader.trader_name}</h1><div style="display:flex;align-items:center;gap:12px"><span class="platform-badge" style="background:${Utils.platformColor(trader.platform)};color:${trader.platform==='Manual'?'#000':'#fff'}">${trader.platform}</span><a href="${trader.profile_url}" target="_blank" style="color:var(--accent);font-size:13px;text-decoration:none">Profile</a></div></div><div style="text-align:right"><div id="fit-display" style="font-size:36px;font-weight:700;color:${Utils.fitColor(fitScore)}">${fitScore}%</div><div style="font-size:13px;color:var(--label-secondary)">Fit Score</div><select id="status-select" style="margin-top:8px;background:var(--surface-hover);color:var(--label);font-size:13px;border-radius:6px;padding:4px 8px;border:none" onchange="updateTraderField('status',this.value)"><option value="">Change status</option>${VALID_STATUSES.map(s=>`<option value="${s}" ${trader.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:13px"><div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Location</label><div style="color:var(--label)">${trader.location||'-'}</div></div><div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Language</label><div style="color:var(--label)">${trader.language||'-'}</div></div><div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Strategy</label><div style="color:var(--label)">${trader.strategy_type||'-'}</div></div><div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Contact Method</label><div style="color:var(--label)">${trader.contact_method||'-'}</div></div></div></div>`;
   // Raw Text (collapsible)
   if(trader.raw_text){
-    html += `<div class="surface p-6 rounded-2xl">
-      <button onclick="document.getElementById('raw-section').classList.toggle('hidden');document.getElementById('raw-chevron').classList.toggle('fa-chevron-right');document.getElementById('raw-chevron').classList.toggle('fa-chevron-down')" class="flex items-center gap-2 text-label-secondary hover:text-label text-sm">
-        <i class="fa-solid fa-chevron-right" id="raw-chevron"></i>Raw Profile Text
+    html += `<div class="surface" style="padding:20px">
+      <button onclick="document.getElementById('raw-section').classList.toggle('hidden')" style="display:flex;align-items:center;gap:8px;color:var(--label-secondary);background:none;border:none;cursor:pointer;font-size:13px;font-family:inherit">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>Raw Profile Text
       </button>
-      <div id="raw-section" class="hidden mt-4">
-        <pre class="text-label-secondary text-xs whitespace-pre-wrap bg-surface-raised p-3 rounded-lg max-h-64 overflow-y-auto">${trader.raw_text}</pre>
-        <button onclick="analyzeRawText('${trader.id}', event)" class="mt-2 text-accent hover:underline text-sm">Run Keyword Analysis</button>
+      <div id="raw-section" style="display:none;margin-top:16px">
+        <pre style="color:var(--label-secondary);font-size:12px;white-space:pre-wrap;background:var(--surface-hover);padding:12px;border-radius:8px;max-height:256px;overflow-y:auto">${trader.raw_text}</pre>
+        <button onclick="analyzeRawText('${trader.id}', event)" style="margin-top:8px;color:var(--accent);background:none;border:none;cursor:pointer;font-size:13px;text-decoration:underline;font-family:inherit">Run Keyword Analysis</button>
       </div>
     </div>`;
   }
   // Performance Card
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Performance</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Performance</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">`;
   const perfFields=[['followers','Followers'],['copiers','Copiers'],['assets_under_management','AUM'],['monthly_return','Monthly %'],['yearly_return','Yearly %'],['maximum_drawdown','Max DD %'],['risk_score','Risk Score'],['trading_consistency','Consistency']];
-  perfFields.forEach(([f,lbl])=>{ const v=trader[f]; if(f.includes('return')||f.includes('drawdown')) html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label font-mono">${v>0?'+':''}${v?parseFloat(v).toFixed(1):'0'}%</div></div>`; else if(f==='assets_under_management') html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label font-mono">$${(v/1000000).toFixed(1)}M</div></div>`; else if(f==='risk_score'||f==='trading_consistency') html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label">${v}/10</div></div>`; else html+=`<div><label class="text-label-secondary text-xs">${lbl}</label><div class="text-label">${v?.toLocaleString()||0}</div></div>`; });
+  perfFields.forEach(([f,lbl])=>{ const v=trader[f]; if(f.includes('return')||f.includes('drawdown')) html+=`<div><label style="color:var(--label-secondary);font-size:12px">${lbl}</label><div style="color:var(--label);font-family:var(--font-mono)">${v>0?'+':''}${v?parseFloat(v).toFixed(1):'0'}%</div></div>`; else if(f==='assets_under_management') html+=`<div><label style="color:var(--label-secondary);font-size:12px">${lbl}</label><div style="color:var(--label);font-family:var(--font-mono)">$${(v/1000000).toFixed(1)}M</div></div>`; else if(f==='risk_score'||f==='trading_consistency') html+=`<div><label style="color:var(--label-secondary);font-size:12px">${lbl}</label><div style="color:var(--label)">${v}/10</div></div>`; else html+=`<div><label style="color:var(--label-secondary);font-size:12px">${lbl}</label><div style="color:var(--label)">${v?.toLocaleString()||0}</div></div>`; });
   html+=`</div></div>`;
   // Social Links Card
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Social Links</h2><div class="grid grid-cols-2 md:grid-cols-3 gap-4">`;
-  ['twitter','telegram','discord','youtube','website'].forEach(plat=>{ const url=trader[plat]; html+=`<div><label class="text-label-secondary text-xs">${plat.charAt(0).toUpperCase()+plat.slice(1)}</label><div>${url?`<a href="${url.startsWith('http')?url:'https://'+url}" target="_blank" class="text-accent text-sm hover:underline truncate block">${url}</a>`:'<span class="text-label-quaternary text-sm">-</span>'}</div></div>`; });
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Social Links</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">`;
+  ['twitter','telegram','discord','youtube','website'].forEach(plat=>{ const url=trader[plat]; html+=`<div><label style="color:var(--label-secondary);font-size:12px">${plat.charAt(0).toUpperCase()+plat.slice(1)}</label><div>${url?`<a href="${url.startsWith('http')?url:'https://'+url}" target="_blank" style="color:var(--accent);font-size:13px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${url}</a>`:'<span style="color:var(--label-tertiary);font-size:13px">-</span>'}</div></div>`; });
   html+=`</div></div>`;
   // Scoring Card
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Scoring</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].map(f=>makeSlider(f.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase()),f)).join('')}</div>
-<div class="mt-6 p-4 bg-surface-raised rounded-xl"><div class="flex justify-between items-center mb-2"><span class="font-medium text-label">Calculated Fit Score</span><span id="fit-preview" class="text-2xl font-bold">${fitScore}%</span></div><div class="score-bar-container"><div id="fit-bar" class="score-bar-fill" style="width:${fitScore}%"></div></div><div class="text-xs text-label-secondary mt-2">Weighted average of 6 scores using settings weights</div></div></div>`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Scoring</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].map(f=>makeSlider(f.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase()),f)).join('')}</div>
+<div style="margin-top:24px;padding:16px;background:var(--surface-hover);border-radius:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:500;color:var(--label)">Calculated Fit Score</span><span id="fit-preview" style="font-size:22px;font-weight:700">${fitScore}%</span></div><div class="score-bar-container"><div id="fit-bar" class="score-bar-fill" style="width:${fitScore}%"></div></div><div style="font-size:12px;color:var(--label-secondary);margin-top:8px">Weighted average of 6 scores using settings weights</div></div></div>`;
   // Interest & Priority
-  html += `<div class="surface p-6 rounded-2xl"><div class="grid grid-cols-2 gap-4">
+  html += `<div class="surface" style="padding:20px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
     <div>
-      <label class="text-label-secondary text-sm block mb-1">Interest Score (0-5)</label>
+      <label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Interest Score (0-5)</label>
       <input type="range" min="0" max="5" value="${trader.interest_score||0}" 
         oninput="document.getElementById('interest-val').textContent=this.value;state.selectedTrader.interest_score=parseInt(this.value);updatePriorityPreview();clearTimeout(_interestDebounce);_interestDebounce=setTimeout(()=>updateTraderField('interest_score',state.selectedTrader.interest_score),500);"
-        class="w-full mb-1">
-      <div class="flex justify-between text-xs"><span class="text-label-quaternary">0</span><span id="interest-val" class="text-label font-mono">${trader.interest_score||0}</span><span class="text-label-quaternary">5</span></div>
+        style="width:100%;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--label-tertiary)">0</span><span id="interest-val" style="color:var(--label);font-family:var(--font-mono)">${trader.interest_score||0}</span><span style="color:var(--label-tertiary)">5</span></div>
     </div>
     <div>
-      <label class="text-label-secondary text-sm block mb-1">Priority Score</label>
-      <div id="priority-preview" class="text-2xl font-bold text-label">${trader.priority_score||0}</div>
-      <div class="text-xs text-label-secondary">fit_score × interest_score / 5</div>
+      <label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Priority Score</label>
+      <div id="priority-preview" style="font-size:22px;font-weight:700;color:var(--label)">${trader.priority_score||0}</div>
+      <div style="font-size:12px;color:var(--label-secondary)">fit_score × interest_score / 5</div>
     </div>
   </div></div>`;
   // Outreach Log Card
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Outreach Activity</h2><div class="flex justify-between items-center mb-4"><span class="text-label-secondary text-sm">Total attempts: ${trader.outreach_attempts||0}</span><button onclick="showOutreachModal('${trader.id}')" class="text-accent hover:underline text-sm"><i class="fa-solid fa-plus mr-1"></i>Log Outreach</button></div><div class="space-y-2" id="outreach-list"></div></div></div></div>`; // end left col
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Outreach Activity</h2><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="color:var(--label-secondary);font-size:13px">Total attempts: ${trader.outreach_attempts||0}</span><button onclick="showOutreachModal('${trader.id}')" style="color:var(--accent);background:none;border:none;cursor:pointer;font-size:13px;text-decoration:underline;font-family:inherit">Log Outreach</button></div><div style="display:flex;flex-direction:column;gap:8px" id="outreach-list"></div></div></div></div>`; // end left col
   // Right Sidebar
-  html+=`<div class="space-y-6"><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Research Notes</h2><textarea id="notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('research_notes',this.value)">${trader.research_notes||''}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Cover Message</h2><textarea id="cover-message" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-32 outline-none focus:ring-1 ring-accent" onchange="updateTraderField('cover_message',this.value)" placeholder="Pitch message for outreach...">${Utils.escapeHtml(trader.cover_message||'')}</textarea></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Tags</h2><input type="text" id="tags" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="${trader.tags||''}" onchange="updateTraderField('tags',this.value)" placeholder="comma separated"></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Quick Actions</h2><div class="grid grid-cols-2 gap-2 mb-4">${VALID_STATUSES.filter(s=>s!=='Rejected'&&s!=='No Response').map(s=>`<button onclick="quickStatus('${s}')" class="text-xs px-2 py-2 rounded-lg bg-surface-raised hover:bg-surface text-label-secondary transition">${s}</button>`).join('')}</div><button onclick="quickStatus('Rejected',true)" class="w-full bg-sys-red/20 hover:bg-sys-red/30 text-sys-red text-sm font-medium py-2 rounded-lg mb-2">Reject</button><button onclick="quickStatus('Active Creator')" class="w-full bg-sys-green/20 hover:bg-sys-green/30 text-sys-green text-sm font-medium py-2 rounded-lg">Mark Active</button></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Outcome Tracking</h2><div class="space-y-4"><div><label class="text-label-secondary text-sm block mb-1">Response Received</label><select id="response-select" class="w-full bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('response_received',this.value)"><option value="No" ${trader.response_received==='No'?'selected':''}>No</option><option value="Yes" ${trader.response_received==='Yes'?'selected':''}>Yes</option></select></div><div><label class="text-label-secondary text-sm block mb-1">Stage Reached</label><select id="stage-select" class="w-full bg-surface-raised text-label text-sm rounded px-2 py-1" onchange="updateTraderField('stage_reached',this.value)"><option value="" ${!trader.stage_reached?'selected':''}>-</option>${['No Response','Screening','Interview','Final Round','N/A'].map(s=>`<option value="${s}" ${trader.stage_reached===s?'selected':''}>${s}</option>`).join('')}</select></div></div></div><div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Audit Trail</h2><div class="space-y-2 text-sm"><div class="flex justify-between"><span class="text-label-secondary">Added</span><span class="text-label">${Utils.formatDate(trader.date_added)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Updated</span><span class="text-label">${Utils.formatDate(trader.date_updated)}</span></div><div class="flex justify-between"><span class="text-label-secondary">First contact</span><span class="text-label">${Utils.formatDate(trader.first_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Last contact</span><span class="text-label">${Utils.formatDate(trader.last_contact_date)}</span></div><div class="flex justify-between"><span class="text-label-secondary">Outreach attempts</span><span class="text-label">${trader.outreach_attempts||0}</span></div></div></div></div></div></div>`;
+  html+=`<div style="display:flex;flex-direction:column;gap:20px"><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Research Notes</h2><textarea id="notes" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:128px;border:none;outline:none;font-family:inherit" onchange="updateTraderField('research_notes',this.value)">${trader.research_notes||''}</textarea></div><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Cover Message</h2><textarea id="cover-message" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:128px;border:none;outline:none;font-family:inherit" onchange="updateTraderField('cover_message',this.value)" placeholder="Pitch message for outreach...">${Utils.escapeHtml(trader.cover_message||'')}</textarea></div><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Tags</h2><input type="text" id="tags" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="${trader.tags||''}" onchange="updateTraderField('tags',this.value)" placeholder="comma separated"></div><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Quick Actions</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">${VALID_STATUSES.filter(s=>s!=='Rejected'&&s!=='No Response').map(s=>`<button onclick="quickStatus('${s}')" style="font-size:12px;padding:8px;border-radius:8px;background:var(--surface-hover);color:var(--label-secondary);border:none;cursor:pointer;font-family:inherit">${s}</button>`).join('')}</div><button onclick="quickStatus('Rejected',true)" style="width:100%;padding:8px;border-radius:8px;background:rgba(255,69,58,0.2);color:var(--sys-red);font-size:13px;font-weight:500;border:none;cursor:pointer;margin-bottom:8px;font-family:inherit">Reject</button><button onclick="quickStatus('Active Creator')" style="width:100%;padding:8px;border-radius:8px;background:rgba(48,209,88,0.2);color:var(--sys-green);font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit">Mark Active</button></div><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Outcome Tracking</h2><div style="display:flex;flex-direction:column;gap:16px"><div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Response Received</label><select id="response-select" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;border-radius:6px;padding:4px 8px;border:none" onchange="updateTraderField('response_received',this.value)"><option value="No" ${trader.response_received==='No'?'selected':''}>No</option><option value="Yes" ${trader.response_received==='Yes'?'selected':''}>Yes</option></select></div><div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Stage Reached</label><select id="stage-select" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;border-radius:6px;padding:4px 8px;border:none" onchange="updateTraderField('stage_reached',this.value)"><option value="" ${!trader.stage_reached?'selected':''}>-</option>${['No Response','Screening','Interview','Final Round','N/A'].map(s=>`<option value="${s}" ${trader.stage_reached===s?'selected':''}>${s}</option>`).join('')}</select></div></div></div><div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Audit Trail</h2><div style="display:flex;flex-direction:column;gap:8px;font-size:13px"><div style="display:flex;justify-content:space-between"><span style="color:var(--label-secondary)">Added</span><span style="color:var(--label)">${Utils.formatDate(trader.date_added)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--label-secondary)">Updated</span><span style="color:var(--label)">${Utils.formatDate(trader.date_updated)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--label-secondary)">First contact</span><span style="color:var(--label)">${Utils.formatDate(trader.first_contact_date)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--label-secondary)">Last contact</span><span style="color:var(--label)">${Utils.formatDate(trader.last_contact_date)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--label-secondary)">Outreach attempts</span><span style="color:var(--label)">${trader.outreach_attempts||0}</span></div></div></div></div></div></div>`;
   document.getElementById('content').innerHTML=html;
   calculatePreview();
   fetchOutreachLogs(trader.id);
 }
 
-function fetchOutreachLogs(traderId){ API.getTrader(traderId).then(t=>{ state.selectedTrader=t; const list=document.getElementById('outreach-list'); if(!list) return; list.innerHTML=t.outreach_logs?t.outreach_logs.map(l=>`<div class="text-sm p-2 bg-surface-raised rounded"><div class="flex justify-between mb-1"><span class="font-medium text-label">${l.method}</span><span class="text-label-tertiary text-xs">${Utils.formatDate(l.date_sent)}</span></div><div class="text-label-secondary text-sm">${l.notes}</div></div>`).join('') : '<div class="text-label-tertiary text-sm">No outreach logged yet.</div>'; }); }
+function fetchOutreachLogs(traderId){ API.getTrader(traderId).then(t=>{ state.selectedTrader=t; const list=document.getElementById('outreach-list'); if(!list) return; list.innerHTML=t.outreach_logs?t.outreach_logs.map(l=>`<div style="font-size:13px;padding:8px;background:var(--surface-hover);border-radius:8px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:500;color:var(--label)">${l.method}</span><span style="color:var(--label-tertiary);font-size:12px">${Utils.formatDate(l.date_sent)}</span></div><div style="color:var(--label-secondary);font-size:13px">${l.notes}</div></div>`).join('') : '<div style="color:var(--label-tertiary);font-size:13px">No outreach logged yet.</div>'; }); }
 
 async function updateTraderField(field,value){ await API.updateTrader(state.selectedTraderId,{[field]:value}); state.selectedTrader[field]=value; refreshData(); }
 
@@ -461,90 +432,90 @@ async function analyzeRawText(traderId, e){
   }
 }
 
-function showOutreachModal(traderId){ const html=`<h3 class="text-lg font-bold mb-4">Log Outreach</h3><div class="space-y-4"><div><label class="text-label-secondary text-sm block mb-2">Method</label><select id="outreach-method" class="w-full bg-surface-raised text-label text-sm rounded-lg px-3 py-2 outline-none"><option value="email">Email</option><option value="telegram">Telegram</option><option value="twitter_dm">Twitter DM</option><option value="discord">Discord</option><option value="linkedin">LinkedIn</option><option value="other">Other</option></select></div><div><label class="text-label-secondary text-sm block mb-2">Notes</label><textarea id="outreach-notes" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-24 outline-none" placeholder="What did you send? Any response?"></textarea></div><div class="flex gap-3 mt-4"><button onclick="submitOutreach('${traderId}')" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save</button><button onclick="closeModal()" class="bg-surface-raised hover:bg-surface text-label-secondary px-4 py-2 rounded-lg text-sm">Cancel</button></div></div>`; showModal(html); }
+function showOutreachModal(traderId){ const html=`<h3 style="font-size:15px;font-weight:700;margin-bottom:16px">Log Outreach</h3><div style="display:flex;flex-direction:column;gap:16px"><div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:8px">Method</label><select id="outreach-method" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;border-radius:8px;padding:8px 12px;border:none;outline:none;font-family:inherit"><option value="email">Email</option><option value="telegram">Telegram</option><option value="twitter_dm">Twitter DM</option><option value="discord">Discord</option><option value="linkedin">LinkedIn</option><option value="other">Other</option></select></div><div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:8px">Notes</label><textarea id="outreach-notes" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:96px;border:none;outline:none;font-family:inherit" placeholder="What did you send? Any response?"></textarea></div><div style="display:flex;gap:12px;margin-top:16px"><button onclick="submitOutreach('${traderId}')" class="btn btn-primary">Save</button><button onclick="closeModal()" class="btn btn-secondary">Cancel</button></div></div>`; showModal(html); }
 
 async function submitOutreach(traderId){ const method=document.getElementById('outreach-method').value; const notes=document.getElementById('outreach-notes').value; await API.logOutreach(traderId,{method,notes}); showToast('Outreach logged'); closeModal(); refreshData().then(()=>renderTraderDetail()); }
 
 function renderDiscovery(){
   const tab = state.discoveryTab || 'paste';
-  let html = `<div class="p-6"><h1 class="text-2xl font-bold mb-6">Add Trader</h1>`;
-  
-  html += `<div class="flex gap-4 border-b border-brd mb-6">`;
-  html += `<button class="pb-2 px-1 border-b-2 ${tab==='manual'?'border-accent font-medium text-label':'text-label-secondary'}" onclick="state.discoveryTab='manual';renderDiscovery()">Manual Entry</button>`;
-  html += `<button class="pb-2 px-1 border-b-2 ${tab==='paste'?'border-accent font-medium text-label':'text-label-secondary'}" onclick="state.discoveryTab='paste';renderDiscovery()">Quick Paste</button>`;
+  let html = `<div style="padding:24px"><h1 style="font-size:22px;font-weight:700;margin-bottom:24px">Add Trader</h1>`;
+
+  html += `<div style="display:flex;gap:16px;border-bottom:0.5px solid var(--separator);margin-bottom:24px;padding:0 24px">`;
+  html += `<button style="padding:8px 0;border:none;border-bottom:2px solid ${tab==='manual'?'var(--accent)':'transparent'};font-size:13px;font-weight:${tab==='manual'?'600':'400'};color:${tab==='manual'?'var(--label)':'var(--label-secondary)'};background:none;cursor:pointer;font-family:inherit" onclick="state.discoveryTab='manual';renderDiscovery()">Manual Entry</button>`;
+  html += `<button style="padding:8px 0;border:none;border-bottom:2px solid ${tab==='paste'?'var(--accent)':'transparent'};font-size:13px;font-weight:${tab==='paste'?'600':'400'};color:${tab==='paste'?'var(--label)':'var(--label-secondary)'};background:none;cursor:pointer;font-family:inherit" onclick="state.discoveryTab='paste';renderDiscovery()">Quick Paste</button>`;
   html += `</div>`;
-  
+
   if(tab === 'manual') {
     html += renderManualEntry();
   } else {
     html += renderQuickPaste();
   }
-  
+
   html += `</div>`;
   document.getElementById('content').innerHTML = html;
 }
 
 function renderManualEntry(){
   return `
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="surface p-6 rounded-2xl">
-      <h2 class="text-lg font-semibold mb-4">Trader Information</h2>
-      <div class="space-y-4">
-        <div><label class="text-label-secondary text-sm block mb-1">Trader Name *</label><input id="me-name" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="e.g. CryptoKing"></div>
-        <div class="grid grid-cols-2 gap-4">
-          <div><label class="text-label-secondary text-sm block mb-1">Platform</label><select id="me-platform" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent">${(state.settings?.['platforms.enabled'] ? JSON.parse(state.settings['platforms.enabled']) : ['Manual','eToro','MQL5','TradingView','ZuluTrade','Myfxbook','Darwinex','NAGA','FXBlue','Twitter','Discord','Telegram']).map(p=>`<option>${p}</option>`).join('')}</select></div>
-          <div><label class="text-label-secondary text-sm block mb-1">Location</label><input id="me-location" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="e.g. Singapore"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="surface" style="padding:20px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Trader Information</h2>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Trader Name *</label><input id="me-name" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="e.g. CryptoKing"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Platform</label><select id="me-platform" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit">${(state.settings?.['platforms.enabled'] ? JSON.parse(state.settings['platforms.enabled']) : ['Manual','eToro','MQL5','TradingView','ZuluTrade','Myfxbook','Darwinex','NAGA','FXBlue','Twitter','Discord','Telegram']).map(p=>`<option>${p}</option>`).join('')}</select></div>
+          <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Location</label><input id="me-location" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="e.g. Singapore"></div>
         </div>
-        <div><label class="text-label-secondary text-sm block mb-1">Profile URL</label><input id="me-url" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="https://..."></div>
-        <div class="grid grid-cols-2 gap-4">
-          <div><label class="text-label-secondary text-sm block mb-1">Language</label><input id="me-language" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="e.g. English"></div>
-          <div><label class="text-label-secondary text-sm block mb-1">Strategy Type</label><input id="me-strategy" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="e.g. DeFi Yield"></div>
+        <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Profile URL</label><input id="me-url" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="https://..."></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Language</label><input id="me-language" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="e.g. English"></div>
+          <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Strategy Type</label><input id="me-strategy" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="e.g. DeFi Yield"></div>
         </div>
-        <div><label class="text-label-secondary text-sm block mb-1">Raw Text (paste profile text here for analysis)</label><textarea id="me-raw" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-24 outline-none focus:ring-1 ring-accent" placeholder="Paste any text about this trader..."></textarea></div>
+        <div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:4px">Raw Text (paste profile text here for analysis)</label><textarea id="me-raw" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:96px;border:none;outline:none;font-family:inherit" placeholder="Paste any text about this trader..."></textarea></div>
       </div>
     </div>
-    <div class="space-y-6">
-      <div class="surface p-6 rounded-2xl">
-        <h2 class="text-lg font-semibold mb-4">Performance Metrics</h2>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div><label class="text-label-secondary block mb-1">Followers</label><input id="me-followers" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">Copiers</label><input id="me-copiers" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">AUM ($)</label><input id="me-aum" type="number" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">Monthly Return %</label><input id="me-monthly" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">Yearly Return %</label><input id="me-yearly" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">Max Drawdown %</label><input id="me-dd" type="number" step="0.1" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
-          <div><label class="text-label-secondary block mb-1">Risk Score (0-10)</label><input id="me-risk" type="number" min="0" max="10" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" value="0"></div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="surface" style="padding:20px">
+        <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Performance Metrics</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px">
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Followers</label><input id="me-followers" type="number" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Copiers</label><input id="me-copiers" type="number" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">AUM ($)</label><input id="me-aum" type="number" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Monthly Return %</label><input id="me-monthly" type="number" step="0.1" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Yearly Return %</label><input id="me-yearly" type="number" step="0.1" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Max Drawdown %</label><input id="me-dd" type="number" step="0.1" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
+          <div><label style="color:var(--label-secondary);display:block;margin-bottom:4px">Risk Score (0-10)</label><input id="me-risk" type="number" min="0" max="10" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" value="0"></div>
         </div>
       </div>
-      <div class="surface p-6 rounded-2xl">
-        <h2 class="text-lg font-semibold mb-4">Social Links</h2>
-        <div class="space-y-3">
-          <div><label class="text-label-secondary text-xs block mb-1">Twitter</label><input id="me-twitter" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="@username"></div>
-          <div><label class="text-label-secondary text-xs block mb-1">Telegram</label><input id="me-telegram" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="@username"></div>
-          <div><label class="text-label-secondary text-xs block mb-1">Discord</label><input id="me-discord" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="user#1234"></div>
-          <div><label class="text-label-secondary text-xs block mb-1">YouTube</label><input id="me-youtube" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="https://youtube.com/..."></div>
-          <div><label class="text-label-secondary text-xs block mb-1">Website</label><input id="me-website" class="w-full bg-surface-raised text-label text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 ring-accent" placeholder="https://..."></div>
+      <div class="surface" style="padding:20px">
+        <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Social Links</h2>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label style="color:var(--label-secondary);font-size:12px;display:block;margin-bottom:4px">Twitter</label><input id="me-twitter" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="@username"></div>
+          <div><label style="color:var(--label-secondary);font-size:12px;display:block;margin-bottom:4px">Telegram</label><input id="me-telegram" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="@username"></div>
+          <div><label style="color:var(--label-secondary);font-size:12px;display:block;margin-bottom:4px">Discord</label><input id="me-discord" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="user#1234"></div>
+          <div><label style="color:var(--label-secondary);font-size:12px;display:block;margin-bottom:4px">YouTube</label><input id="me-youtube" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="https://youtube.com/..."></div>
+          <div><label style="color:var(--label-secondary);font-size:12px;display:block;margin-bottom:4px">Website</label><input id="me-website" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:8px 12px;border-radius:8px;border:none;outline:none;font-family:inherit" placeholder="https://..."></div>
         </div>
       </div>
-      <button onclick="saveManualEntry()" class="w-full bg-accent hover:bg-accent-hover text-white px-4 py-3 rounded-lg text-sm font-medium">Add Trader</button>
+      <button onclick="saveManualEntry()" class="btn btn-primary" style="width:100%;padding:12px 16px">Add Trader</button>
     </div>
   </div>`;
 }
 
 function renderQuickPaste(){
   return `
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="surface p-6 rounded-2xl">
-      <h2 class="text-lg font-semibold mb-4">Paste Trader Profile</h2>
-      <p class="text-label-secondary text-sm mb-4">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p>
-      <textarea id="paste-text" class="w-full bg-surface-raised text-label text-sm p-3 rounded-lg resize-none h-64 outline-none focus:ring-1 ring-accent" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="surface" style="padding:20px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Paste Trader Profile</h2>
+      <p style="color:var(--label-secondary);font-size:13px;margin-bottom:16px">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p>
+      <textarea id="paste-text" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:256px;border:none;outline:none;font-family:inherit" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea>
     </div>
-    <div class="surface p-6 rounded-2xl">
-      <h2 class="text-lg font-semibold mb-4">Preview & Edit</h2>
-      <div id="preview-content" class="text-label-tertiary text-sm">Paste text to see preview...</div>
-      <div class="mt-6 flex gap-3">
-        <button id="parse-btn" onclick="parsePreview()" class="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Parse</button>
-        <button id="save-btn" onclick="saveParsedTrader()" class="bg-sys-green hover:bg-sys-green/90 text-white px-4 py-2 rounded-lg text-sm font-medium" disabled>Add Trader</button>
+    <div class="surface" style="padding:20px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Preview & Edit</h2>
+      <div id="preview-content" style="color:var(--label-tertiary);font-size:13px">Paste text to see preview...</div>
+      <div style="margin-top:24px;display:flex;gap:12px">
+        <button id="parse-btn" onclick="parsePreview()" class="btn btn-primary" disabled>Parse</button>
+        <button id="save-btn" onclick="saveParsedTrader()" class="btn btn-primary" disabled style="background:var(--sys-green)">Add Trader</button>
       </div>
     </div>
   </div>`;
@@ -601,7 +572,7 @@ function parsePreview(){
 
 function renderParsedPreview(){
   const p=parsedTraderData;
-  const html=`<div class="space-y-3 text-sm"><div class="grid grid-cols-2 gap-3"><div><span class="text-label-secondary">Name</span><div class="text-label font-medium">${p.trader_name||'-'}</div></div><div><span class="text-label-secondary">Platform</span><div class="text-label">${p.platform}</div></div><div><span class="text-label-secondary">Location</span><div class="text-label">${p.location||'-'}</div></div><div><span class="text-label-secondary">Strategy</span><div class="text-label">${p.strategy_type||'-'}</div></div></div><div class="grid grid-cols-3 gap-3"><div><span class="text-label-secondary">Followers</span><div class="text-label">${p.followers?.toLocaleString()}</div></div><div><span class="text-label-secondary">Copiers</span><div class="text-label">${p.copiers?.toLocaleString()}</div></div><div><span class="text-label-secondary">AUM</span><div class="text-label">$${p.assets_under_management?.toLocaleString()}</div></div></div><div class="grid grid-cols-2 gap-3"><div><span class="text-label-secondary">Monthly Return</span><div class="text-label">${p.monthly_return}%</div></div><div><span class="text-label-secondary">Yearly Return</span><div class="text-label">${p.yearly_return}%</div></div><div><span class="text-label-secondary">Max Drawdown</span><div class="text-label">${p.maximum_drawdown}%</div></div><div><span class="text-label-secondary">Risk Score</span><div class="text-label">${p.risk_score}/10</div></div></div><div class="pt-3 border-t border-brd"><span class="text-label-secondary text-xs">Social Links</span><div class="flex flex-wrap gap-2 mt-1">${[p.twitter&&`<a href="https://twitter.com/${p.twitter}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Twitter @${p.twitter}</a>` , p.telegram&&`<span class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Telegram: ${p.telegram}</span>` , p.discord&&`<span class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Discord: ${p.discord}</span>` , p.youtube&&`<a href="${p.youtube}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">YouTube</a>` , p.website&&`<a href="${p.website}" target="_blank" class="text-xs bg-surface-raised px-2 py-1 rounded text-label">Website</a>`].filter(Boolean).join('')}</div></div></div>`;
+  const html=`<div style="display:flex;flex-direction:column;gap:12px;font-size:13px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><span style="color:var(--label-secondary)">Name</span><div style="color:var(--label);font-weight:500">${p.trader_name||'-'}</div></div><div><span style="color:var(--label-secondary)">Platform</span><div style="color:var(--label)">${p.platform}</div></div><div><span style="color:var(--label-secondary)">Location</span><div style="color:var(--label)">${p.location||'-'}</div></div><div><span style="color:var(--label-secondary)">Strategy</span><div style="color:var(--label)">${p.strategy_type||'-'}</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"><div><span style="color:var(--label-secondary)">Followers</span><div style="color:var(--label)">${p.followers?.toLocaleString()}</div></div><div><span style="color:var(--label-secondary)">Copiers</span><div style="color:var(--label)">${p.copiers?.toLocaleString()}</div></div><div><span style="color:var(--label-secondary)">AUM</span><div style="color:var(--label)">$${p.assets_under_management?.toLocaleString()}</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><span style="color:var(--label-secondary)">Monthly Return</span><div style="color:var(--label)">${p.monthly_return}%</div></div><div><span style="color:var(--label-secondary)">Yearly Return</span><div style="color:var(--label)">${p.yearly_return}%</div></div><div><span style="color:var(--label-secondary)">Max Drawdown</span><div style="color:var(--label)">${p.maximum_drawdown}%</div></div><div><span style="color:var(--label-secondary)">Risk Score</span><div style="color:var(--label)">${p.risk_score}/10</div></div></div><div style="padding-top:12px;border-top:0.5px solid var(--separator)"><span style="color:var(--label-secondary);font-size:12px">Social Links</span><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">${[p.twitter&&`<a href="https://twitter.com/${p.twitter}" target="_blank" style="font-size:12px;background:var(--surface-hover);padding:4px 8px;border-radius:4px;color:var(--label);text-decoration:none">Twitter @${p.twitter}</a>` , p.telegram&&`<span style="font-size:12px;background:var(--surface-hover);padding:4px 8px;border-radius:4px;color:var(--label)">Telegram: ${p.telegram}</span>` , p.discord&&`<span style="font-size:12px;background:var(--surface-hover);padding:4px 8px;border-radius:4px;color:var(--label)">Discord: ${p.discord}</span>` , p.youtube&&`<a href="${p.youtube}" target="_blank" style="font-size:12px;background:var(--surface-hover);padding:4px 8px;border-radius:4px;color:var(--label);text-decoration:none">YouTube</a>` , p.website&&`<a href="${p.website}" target="_blank" style="font-size:12px;background:var(--surface-hover);padding:4px 8px;border-radius:4px;color:var(--label);text-decoration:none">Website</a>`].filter(Boolean).join('')}</div></div></div>`;
   document.getElementById('preview-content').innerHTML=html;
 }
 
@@ -615,18 +586,18 @@ async function saveParsedTrader(){
 function renderSettings(){
   const weights={}; ['audience_strength','trading_consistency','communication_quality','crypto_knowledge','likelihood_to_join','brand_value'].forEach(k=>weights[k]=parseFloat(state.settings[`scoring_weights.${k}`])||1.0);
   const platforms=JSON.parse(state.settings['platforms.enabled']||'[]');
-  let html=`<div class="p-6 max-w-3xl"><h1 class="text-2xl font-bold mb-6">Settings</h1><div class="space-y-6">`;
+  let html=`<div style="padding:24px;max-width:720px"><h1 style="font-size:22px;font-weight:700;margin-bottom:24px">Settings</h1><div style="display:flex;flex-direction:column;gap:20px">`;
   // Scoring Weights
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Scoring Weights</h2><p class="text-label-secondary text-sm mb-4">Adjust how each factor contributes to the fit score (0 = ignore, 3 = triple weight).</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-  Object.entries(weights).forEach(([k,v])=>{ html+=`<div><label class="text-label-secondary text-sm block mb-2">${k.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase())}</label><input type="range" min="0" max="3" step="0.1" value="${v}" data-key="${k}" class="w-full mb-1" oninput="document.getElementById('val-${k}').textContent=this.value"><div class="flex justify-between text-xs"><span class="text-label-quaternary">0</span><span id="val-${k}" class="text-label font-mono">${v}</span><span class="text-label-quaternary">3</span></div></div>`; });
-  html+=`</div><button onclick="saveWeights()" class="mt-4 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save Weights</button></div>`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Scoring Weights</h2><p style="color:var(--label-secondary);font-size:13px;margin-bottom:16px">Adjust how each factor contributes to the fit score (0 = ignore, 3 = triple weight).</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">`;
+  Object.entries(weights).forEach(([k,v])=>{ html+=`<div><label style="color:var(--label-secondary);font-size:13px;display:block;margin-bottom:8px">${k.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase())}</label><input type="range" min="0" max="3" step="0.1" value="${v}" data-key="${k}" style="width:100%;margin-bottom:4px" oninput="document.getElementById('val-${k}').textContent=this.value"><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--label-tertiary)">0</span><span id="val-${k}" style="color:var(--label);font-family:var(--font-mono)">${v}</span><span style="color:var(--label-tertiary)">3</span></div></div>`; });
+  html+=`</div><button onclick="saveWeights()" class="btn btn-primary" style="margin-top:16px">Save Weights</button></div>`;
   // Platforms
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Enabled Platforms</h2><p class="text-label-secondary text-sm mb-4">Select which platforms appear in the platform filter dropdown.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-3">`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Enabled Platforms</h2><p style="color:var(--label-secondary);font-size:13px;margin-bottom:16px">Select which platforms appear in the platform filter dropdown.</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">`;
   const all=['Manual','Telegram','eToro','MQL5','TradingView','ZuluTrade','Myfxbook','Darwinex','NAGA','FXBlue','Twitter','Discord'];
-  all.forEach(p=>{ html+=`<label class="flex items-center gap-2 text-sm"><input type="checkbox" ${platforms.includes(p)?'checked':''} onchange="togglePlatform('${p}',this.checked)" class="accent-accent"><span class="${platforms.includes(p)?'text-label':'text-label-quaternary'}">${p}</span></label>`; });
-  html+=`</div><button onclick="savePlatforms()" class="mt-4 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium">Save Platforms</button></div>`;
+  all.forEach(p=>{ html+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" ${platforms.includes(p)?'checked':''} onchange="togglePlatform('${p}',this.checked)"><span style="color:${platforms.includes(p)?'var(--label)':'var(--label-tertiary)'}">${p}</span></label>`; });
+  html+=`</div><button onclick="savePlatforms()" class="btn btn-primary" style="margin-top:16px">Save Platforms</button></div>`;
   // Data Management
-  html+=`<div class="surface p-6 rounded-2xl"><h2 class="text-lg font-semibold mb-4">Data Management</h2><div class="space-y-3"><button onclick="downloadSample()" class="w-full text-left bg-surface-raised hover:bg-surface p-3 rounded-lg text-label-secondary text-sm">Download Sample Data (JSON)</button><div class="flex gap-2"><button onclick="importData()" class="flex-1 bg-surface-raised hover:bg-surface p-3 rounded-lg text-label-secondary text-sm">Import JSON</button><button onclick="clearAllData()" class="flex-1 bg-sys-red/20 hover:bg-sys-red/30 text-sys-red p-3 rounded-lg text-sm">Clear All Data</button></div></div></div></div></div>`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Data Management</h2><div style="display:flex;flex-direction:column;gap:12px"><button onclick="downloadSample()" class="btn btn-secondary" style="width:100%;justify-content:flex-start;padding:12px">Download Sample Data (JSON)</button><div style="display:flex;gap:8px"><button onclick="importData()" class="btn btn-secondary" style="flex:1;padding:12px">Import JSON</button><button onclick="clearAllData()" style="flex:1;padding:12px;border-radius:8px;background:rgba(255,69,58,0.2);color:var(--sys-red);font-size:13px;border:none;cursor:pointer;font-family:inherit">Clear All Data</button></div></div></div></div></div>`;
   document.getElementById('content').innerHTML=html;
 }
 
