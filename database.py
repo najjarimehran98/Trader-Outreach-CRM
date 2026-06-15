@@ -88,10 +88,6 @@ async def init_db():
             )
         await db.commit()
 
-async def get_db():
-    """Context manager for database connections."""
-    return aiosqlite.connect(DB_PATH)
-
 async def get_traders(conn, status='all', platform='all', min_fit=0, search='', sort='date_added DESC'):
     """List traders with optional filters."""
     conditions = []

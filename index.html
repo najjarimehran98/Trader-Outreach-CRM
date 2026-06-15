@@ -597,14 +597,14 @@ function renderSettings(){
   all.forEach(p=>{ html+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px"><input type="checkbox" ${platforms.includes(p)?'checked':''} onchange="togglePlatform('${p}',this.checked)"><span style="color:${platforms.includes(p)?'var(--label)':'var(--label-tertiary)'}">${p}</span></label>`; });
   html+=`</div><button onclick="savePlatforms()" class="btn btn-primary" style="margin-top:16px">Save Platforms</button></div>`;
   // Data Management
-  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Data Management</h2><div style="display:flex;flex-direction:column;gap:12px"><button onclick="downloadSample()" class="btn btn-secondary" style="width:100%;justify-content:flex-start;padding:12px">Download Sample Data (JSON)</button><div style="display:flex;gap:8px"><button onclick="importData()" class="btn btn-secondary" style="flex:1;padding:12px">Import JSON</button><button onclick="clearAllData()" style="flex:1;padding:12px;border-radius:8px;background:rgba(255,69,58,0.2);color:var(--sys-red);font-size:13px;border:none;cursor:pointer;font-family:inherit">Clear All Data</button></div></div></div></div></div>`;
+  html+=`<div class="surface" style="padding:20px"><h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Data Management</h2><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;gap:8px"><button onclick="importData()" class="btn btn-secondary" style="flex:1;padding:12px">Import JSON</button><button onclick="clearAllData()" style="flex:1;padding:12px;border-radius:8px;background:rgba(255,69,58,0.2);color:var(--sys-red);font-size:13px;border:none;cursor:pointer;font-family:inherit">Clear All Data</button></div></div></div></div></div>`;
   document.getElementById('content').innerHTML=html;
 }
 
 async function saveWeights(){ const w={}; document.querySelectorAll('input[data-key]').forEach(inp=>w[inp.dataset.key]=parseFloat(inp.value)); const updates={}; Object.entries(w).forEach(([k,v])=>updates[`scoring_weights.${k}`]=v.toString()); await API.saveSettings(updates); showToast('Weights saved'); }
 function togglePlatform(p,checked){ const current=JSON.parse(state.settings['platforms.enabled']||'[]'); if(checked) current.push(p); else current.splice(current.indexOf(p),1); state.settings['platforms.enabled']=JSON.stringify([...new Set(current)]); }
 async function savePlatforms(){ await API.saveSettings({'platforms.enabled':state.settings['platforms.enabled']}); showToast('Platforms saved'); }
-function downloadSample(){ window.location.href='/sample_data/sample_traders.json'; }
+// downloadSample removed — no sample data file exists
 async function importData(){ const input=document.createElement('input'); input.type='file'; input.accept='.json'; input.onchange=async(e)=>{ const file=e.target.files[0]; const text=await file.text(); const data=JSON.parse(text); await API.importData(data); showToast('Data imported'); refreshData(); }; input.click(); }
 async function clearAllData(){ if(confirm('Delete ALL traders? This cannot be undone.')){ await fetch('/api/traders',{method:'DELETE'}); showToast('All data cleared'); refreshData(); } }
 
