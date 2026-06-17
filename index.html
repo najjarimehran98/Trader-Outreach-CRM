@@ -84,15 +84,15 @@ const API = {
     return res.json();
   },
   async getTrader(id) { return (await fetch(`/api/traders/${id}`)).json(); },
-  async createTrader(data) { return (await fetch('/api/traders', {method:'POST',body:JSON.stringify(data)})).json(); },
-  async updateTrader(id, data) { return (await fetch(`/api/traders/${id}`, {method:'PUT',body:JSON.stringify(data)})).json(); },
+  async createTrader(data) { return (await fetch('/api/traders', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); },
+  async updateTrader(id, data) { return (await fetch(`/api/traders/${id}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); },
   async deleteTrader(id) { return (await fetch(`/api/traders/${id}`, {method:'DELETE'})).json(); },
   async getStats() { return (await fetch('/api/traders/stats')).json(); },
-  async logOutreach(id, data) { return (await fetch(`/api/traders/${id}/outreach`, {method:'POST',body:JSON.stringify(data)})).json(); },
+  async logOutreach(id, data) { return (await fetch(`/api/traders/${id}/outreach`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); },
   async getSettings() { return (await fetch('/api/settings')).json(); },
-  async saveSettings(data) { return (await fetch('/api/settings', {method:'PUT',body:JSON.stringify(data)})).json(); },
+  async saveSettings(data) { return (await fetch('/api/settings', {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); },
   async exportData() { return (await fetch('/api/export')).json(); },
-  async importData(data) { return (await fetch('/api/import', {method:'POST',body:JSON.stringify(data)})).json(); },
+  async importData(data) { return (await fetch('/api/import', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); },
 };
 
 const Utils = {
