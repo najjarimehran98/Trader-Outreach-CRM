@@ -1,5 +1,28 @@
 # Release Notes
 
+## v1.3.0 — Excel/CSV File Import
+**Date:** 2025-06-17
+
+### Features
+- New "Import File" tab on Discovery page — upload Excel (.xlsx, .xls) or CSV files
+- Auto-detects column headers (NAME, SOURCE, PROFILE LINK, LINKTREE, MESSAGE STATUS)
+- Parses social links from Linktree URLs (extracts telegram, twitter, discord)
+- Maps message status to CRM statuses (Messaged→Contacted, Emailed→Contacted)
+- Preview table showing parsed data before import
+- Bulk import all parsed traders with one click
+
+### Backend
+- New `POST /api/parse-file` endpoint using openpyxl (Excel) and csv (CSV)
+- Smart column mapping with fuzzy header matching
+- Social link URL parsing (t.me, twitter.com, x.com, discord, youtube)
+
+### Files Changed
+- `requirements.txt` — added openpyxl
+- `main.py` — new parse-file endpoint + column mapping logic
+- `index.html` — new Import File tab with upload, preview, import
+
+---
+
 ## v1.2.0 — Bug Fix Sprint
 **Date:** 2025-06-17
 

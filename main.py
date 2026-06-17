@@ -1,4 +1,6 @@
 from collections import Counter
+import csv
+import io
 import html
 import json
 import logging
@@ -9,8 +11,9 @@ from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, File, Form
 from fastapi.responses import FileResponse
+from openpyxl import load_workbook
 import aiosqlite
 
 from database import (
@@ -498,6 +501,102 @@ async def import_data(data: dict):
                 await set_setting(conn, key, str(value) if value is not None else "")
 
     return {"imported": count}
+
+
+# ===== File Parse API =====
+
+COLUMN_MAP = {
+    'name': 'trader_name', 'trader': 'trader_name', 'trader_name': 'trader_name',
+    'source': 'platform', 'platform': 'platform',
+    'profile link': 'profile_url', 'url': 'profile_url', 'profile': 'profile_url', 'profile_url': 'profile_url',
+    'linktree': '_social', 'social': '_social', 'twitter': 'twitter', 'telegram': 'telegram',
+    'discord': 'discord', 'youtube': 'youtube', 'website': 'website',
+    'message status': 'status', 'status': 'status', 'pipeline stage': 'pipeline_stage',
+}
+
+STATUS_MAP = {
+    'messaged': 'Contacted', 'emailed': 'Contacted', 'contacted': 'Contacted',
+    'replied': 'Replied', 'interested': 'Interested', 'meeting': 'Meeting Scheduled',
+    'negotiation': 'Negotiation', 'onboarded': 'Onboarding', 'rejected': 'Rejected',
+}
+
+
+def _parse_social_links(text):
+    """Extract twitter/telegram/discord from a URL or text string."""
+    result = {}
+    if not text:
+        return result
+    text = text.strip().lower()
+    if 't.me/' in text or 'telegram' in text:
+        result['telegram'] = text.split('t.me/')[-1].split('/')[0].split('?')[0] if 't.me/' in text else text
+    elif 'twitter.com/' in text or 'x.com/' in text:
+        result['twitter'] = text.split('twitter.com/')[-1].split('x.com/')[-1].split('/')[0].split('?')[0]
+    elif 'discord' in text:
+        result['discord'] = text
+    elif 'youtube.com/' in text or 'youtu.be/' in text:
+        result['youtube'] = text
+    elif text.startswith('http'):
+        result['website'] = text
+    return result
+
+
+def _map_row(headers, row):
+    """Map a row of data using column headers."""
+    trader = {}
+    social_text = []
+    for i, header in enumerate(headers):
+        if i >= len(row):
+            continue
+        val = (row[i] or '').strip()
+        if not val:
+            continue
+        key = header.strip().lower()
+        field = COLUMN_MAP.get(key)
+        if field == '_social':
+            social_text.append(val)
+        elif field == 'status':
+            trader['status'] = STATUS_MAP.get(val.lower(), val)
+        elif field:
+            trader[field] = val
+    for text in social_text:
+        trader.update(_parse_social_links(text))
+    return trader
+
+
+@app.post("/api/parse-file")
+async def parse_file(file: bytes = File(...), filename: str = Form("")):
+    """Parse uploaded Excel or CSV file and return structured trader data."""
+    rows = []
+    headers = []
+    try:
+        if filename.endswith('.csv') or filename.endswith('.tsv'):
+            text = file.decode('utf-8-sig')
+            reader = csv.reader(io.StringIO(text))
+            all_rows = list(reader)
+            if not all_rows:
+                raise HTTPException(400, "Empty file")
+            headers = all_rows[0]
+            for row in all_rows[1:]:
+                if any(cell.strip() for cell in row):
+                    rows.append(_map_row(headers, row))
+        elif filename.endswith(('.xlsx', '.xls')):
+            wb = load_workbook(io.BytesIO(file), read_only=True, data_only=True)
+            ws = wb.active
+            all_rows = [[str(cell or '') for cell in row] for row in ws.iter_rows()]
+            wb.close()
+            if not all_rows:
+                raise HTTPException(400, "Empty file")
+            headers = all_rows[0]
+            for row in all_rows[1:]:
+                if any(cell.strip() for cell in row):
+                    rows.append(_map_row(headers, row))
+        else:
+            raise HTTPException(400, "Unsupported file type. Use .csv, .xlsx, or .xls")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(400, f"Parse error: {str(e)}")
+    return {"rows": rows, "count": len(rows), "headers": headers}
 
 
 if __name__ == "__main__":

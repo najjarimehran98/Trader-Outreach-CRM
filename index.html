@@ -443,10 +443,13 @@ function renderDiscovery(){
   html += `<div style="display:flex;gap:16px;border-bottom:0.5px solid var(--separator);margin-bottom:24px;padding:0 24px">`;
   html += `<button style="padding:8px 0;border:none;border-bottom:2px solid ${tab==='manual'?'var(--accent)':'transparent'};font-size:13px;font-weight:${tab==='manual'?'600':'400'};color:${tab==='manual'?'var(--label)':'var(--label-secondary)'};background:none;cursor:pointer;font-family:inherit" onclick="state.discoveryTab='manual';renderDiscovery()">Manual Entry</button>`;
   html += `<button style="padding:8px 0;border:none;border-bottom:2px solid ${tab==='paste'?'var(--accent)':'transparent'};font-size:13px;font-weight:${tab==='paste'?'600':'400'};color:${tab==='paste'?'var(--label)':'var(--label-secondary)'};background:none;cursor:pointer;font-family:inherit" onclick="state.discoveryTab='paste';renderDiscovery()">Quick Paste</button>`;
+  html += `<button style="padding:8px 0;border:none;border-bottom:2px solid ${tab==='file'?'var(--accent)':'transparent'};font-size:13px;font-weight:${tab==='file'?'600':'400'};color:${tab==='file'?'var(--label)':'var(--label-secondary)'};background:none;cursor:pointer;font-family:inherit" onclick="state.discoveryTab='file';renderDiscovery()">Import File</button>`;
   html += `</div>`;
 
   if(tab === 'manual') {
     html += renderManualEntry();
+  } else if(tab === 'file') {
+    html += renderFileImport();
   } else {
     html += renderQuickPaste();
   }
@@ -519,6 +522,83 @@ function renderQuickPaste(){
       </div>
     </div>
   </div>`;
+}
+
+function renderFileImport(){
+  return `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="surface" style="padding:20px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Upload File</h2>
+      <p style="color:var(--label-secondary);font-size:13px;margin-bottom:16px">Upload an Excel (.xlsx, .xls) or CSV file. Columns like NAME, SOURCE, PROFILE LINK, LINKTREE, MESSAGE STATUS will be auto-detected.</p>
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.tsv" onchange="handleFileUpload(this)" style="display:none">
+      <button onclick="document.getElementById('file-input').click()" class="btn btn-secondary" style="width:100%;padding:12px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Choose File
+      </button>
+      <div id="file-info" style="margin-top:12px;font-size:13px;color:var(--label-secondary)"></div>
+    </div>
+    <div class="surface" style="padding:20px">
+      <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Preview</h2>
+      <div id="file-preview" style="color:var(--label-tertiary);font-size:13px">Upload a file to see preview...</div>
+      <div style="margin-top:24px;display:flex;gap:12px">
+        <button id="import-file-btn" onclick="importFileTraders()" class="btn btn-primary" disabled style="background:var(--sys-green)">Import All</button>
+        <span id="file-count" style="font-size:13px;color:var(--label-secondary);align-self:center"></span>
+      </div>
+    </div>
+  </div>`;
+}
+
+let parsedFileData=[];
+
+async function handleFileUpload(input){
+  const file=input.files[0];
+  if(!file) return;
+  document.getElementById('file-info').innerHTML=`<strong>${Utils.escapeHtml(file.name)}</strong> (${(file.size/1024).toFixed(1)} KB)`;
+  document.getElementById('file-preview').innerHTML='Parsing...';
+  try{
+    const formData=new FormData();
+    formData.append('file',file);
+    formData.append('filename',file.name);
+    const res=await fetch('/api/parse-file',{method:'POST',body:formData});
+    const data=await res.json();
+    if(!res.ok){ throw new Error(data.detail||'Parse failed'); }
+    parsedFileData=data.rows;
+    renderFilePreview(data);
+  }catch(e){
+    document.getElementById('file-preview').innerHTML=`<span style="color:var(--sys-red)">Error: ${Utils.escapeHtml(e.message)}</span>`;
+    document.getElementById('import-file-btn').disabled=true;
+  }
+}
+
+function renderFilePreview(data){
+  if(!data.rows.length){
+    document.getElementById('file-preview').innerHTML='No rows found.';
+    return;
+  }
+  let html=`<div style="font-size:12px;color:var(--label-secondary);margin-bottom:12px">${data.count} traders found</div>`;
+  html+=`<div style="max-height:400px;overflow-y:auto">`;
+  html+=`<table style="width:100%;font-size:12px;border-collapse:collapse">`;
+  html+=`<tr style="border-bottom:1px solid var(--separator)"><th style="text-align:left;padding:6px 8px;color:var(--label-secondary)">Name</th><th style="text-align:left;padding:6px 8px;color:var(--label-secondary)">Platform</th><th style="text-align:left;padding:6px 8px;color:var(--label-secondary)">Status</th><th style="text-align:left;padding:6px 8px;color:var(--label-secondary)">Profile</th></tr>`;
+  data.rows.slice(0,50).forEach(r=>{
+    html+=`<tr style="border-bottom:1px solid var(--separator)"><td style="padding:6px 8px;color:var(--label)">${Utils.escapeHtml(r.trader_name||'-')}</td><td style="padding:6px 8px;color:var(--label)">${Utils.escapeHtml(r.platform||'-')}</td><td style="padding:6px 8px"><span class="pill pill-gray">${Utils.escapeHtml(r.status||'-')}</span></td><td style="padding:6px 8px"><a href="${Utils.escapeHtml(r.profile_url||'')}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">${r.profile_url?'Link':'-'}</a></td></tr>`;
+  });
+  if(data.rows.length>50) html+=`<tr><td colspan="4" style="padding:6px 8px;color:var(--label-tertiary);text-align:center">...and ${data.rows.length-50} more</td></tr>`;
+  html+=`</table></div>`;
+  document.getElementById('file-preview').innerHTML=html;
+  document.getElementById('import-file-btn').disabled=false;
+  document.getElementById('file-count').textContent=`${data.count} traders`;
+}
+
+async function importFileTraders(){
+  if(!parsedFileData.length) return;
+  try{
+    await API.importData({traders:parsedFileData});
+    showToast(`Imported ${parsedFileData.length} traders`);
+    await refreshData();
+    navigate('traders');
+  }catch(e){
+    showToast('Import failed: '+e.message,'error');
+  }
 }
 
 async function saveManualEntry(){
