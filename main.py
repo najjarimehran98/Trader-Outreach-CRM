@@ -582,7 +582,7 @@ async def parse_file(file: bytes = File(...), filename: str = Form("")):
         elif filename.endswith(('.xlsx', '.xls')):
             wb = load_workbook(io.BytesIO(file), read_only=True, data_only=True)
             ws = wb.active
-            all_rows = [[str(cell or '') for cell in row] for row in ws.iter_rows()]
+            all_rows = [[str(cell.value or '') for cell in row] for row in ws.iter_rows()]
             wb.close()
             if not all_rows:
                 raise HTTPException(400, "Empty file")
