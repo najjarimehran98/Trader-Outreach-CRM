@@ -1,5 +1,16 @@
 # Release Notes
 
+## v1.1.1 — Fix: Quick Parse Button Disabled
+**Date:** 2025-06-17
+
+### Bug Fixes
+- Parse button on Discovery page was permanently disabled — added `oninput` handler to textarea to enable/disable the button based on text content
+
+### Files Changed
+- `index.html` — textarea oninput handler
+
+---
+
 ## v1.1.0 — Fix: New Trader Entries Not Saving
 **Date:** 2025-06-17
 

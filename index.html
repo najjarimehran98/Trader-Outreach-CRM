@@ -508,7 +508,7 @@ function renderQuickPaste(){
     <div class="surface" style="padding:20px">
       <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Paste Trader Profile</h2>
       <p style="color:var(--label-secondary);font-size:13px;margin-bottom:16px">Paste any text containing trader information. Supported fields: name, platform, location, social links, performance metrics.</p>
-      <textarea id="paste-text" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:256px;border:none;outline:none;font-family:inherit" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea>
+      <textarea id="paste-text" oninput="document.getElementById('parse-btn').disabled=!this.value.trim()" style="width:100%;background:var(--surface-hover);color:var(--label);font-size:13px;padding:12px;border-radius:8px;resize:none;height:256px;border:none;outline:none;font-family:inherit" placeholder="Example:&#10;Trader: CryptoKing&#10;Platform: eToro&#10;Location: Singapore&#10;Twitter: @cryptoking&#10;Monthly Return: +12.5%&#10;Followers: 15000"></textarea>
     </div>
     <div class="surface" style="padding:20px">
       <h2 style="font-size:15px;font-weight:600;margin-bottom:16px">Preview & Edit</h2>
