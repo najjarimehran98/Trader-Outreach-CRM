@@ -1,5 +1,16 @@
 # Release Notes
 
+## v1.1.2 — Fix: Trader Detail Page Blank
+**Date:** 2025-06-17
+
+### Bug Fixes
+- Removed premature `calculatePreview()` call in `renderTraderDetail()` that accessed DOM elements before they were created, causing a TypeError and blank page
+
+### Files Changed
+- `index.html` — removed redundant function call
+
+---
+
 ## v1.1.1 — Fix: Quick Parse Button Disabled
 **Date:** 2025-06-17
 
