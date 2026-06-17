@@ -554,6 +554,7 @@ async function saveManualEntry(){
   try {
     await API.createTrader(trader);
     showToast('Trader added successfully');
+    await refreshData();
     navigate('traders');
   } catch(e) {
     showToast('Failed to add trader: ' + e.message, 'error');
@@ -580,6 +581,7 @@ async function saveParsedTrader(){
   const trader={...parsedTraderData, platform: parsedTraderData.platform||'Manual', status:'Trader Found', pipeline_stage:'Research', date_added:new Date().toISOString(), date_updated:new Date().toISOString()};
   await API.createTrader(trader);
   showToast('Trader added successfully');
+  await refreshData();
   navigate('traders');
 }
 
