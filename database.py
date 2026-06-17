@@ -47,6 +47,7 @@ def calculate_fit_score(trader, weights):
 async def init_db():
     """Initialize database: create tables and set default settings."""
     async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA foreign_keys = ON")
         # Create base tables
         await db.executescript(MIGRATION_SQL)
         # Settings table
@@ -295,13 +296,11 @@ async def get_all_settings(conn) -> dict:
 
 async def import_traders(conn, traders_data: list):
     """Bulk import traders."""
+    imported = 0
     for trader in traders_data:
         try:
-            fields = [k for k in trader.keys()]
-            placeholders = ", ".join(["?"] * len(fields))
-            columns = ",".join(fields)
-            values = [json.dumps(v) if isinstance(v, (dict, list)) else v for v in [trader[f] for f in fields]]
-            await conn.execute(f"INSERT OR REPLACE INTO traders ({columns}) VALUES ({placeholders})", values)
+            await create_trader(conn, trader)
+            imported += 1
         except Exception:
             continue
-    await conn.commit()
+    return imported

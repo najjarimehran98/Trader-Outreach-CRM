@@ -292,7 +292,10 @@ async def _seed_sample_data(conn):
         },
     ]
     for trader_data in samples:
-        await create_trader(conn, trader_data)
+        try:
+            await create_trader(conn, trader_data)
+        except Exception:
+            continue
     logger.info("Sample traders seeded")
 
 
@@ -394,8 +397,11 @@ async def remove_trader(trader_id: str):
 
 
 @app.delete("/api/traders")
-async def clear_all_traders():
+async def clear_all_traders(confirm: str = ""):
+    if confirm != "yes":
+        raise HTTPException(400, "Send ?confirm=yes to clear all data")
     async with aiosqlite.connect(DB_PATH) as conn:
+        await conn.execute("PRAGMA foreign_keys = ON")
         await conn.execute("DELETE FROM outreach_logs")
         await conn.execute("DELETE FROM traders")
         await conn.commit()
@@ -483,14 +489,15 @@ async def import_data(data: dict):
     if "traders" not in data or not isinstance(data["traders"], list):
         raise HTTPException(400, "Invalid format: expected {traders: [...]}")
     async with aiosqlite.connect(DB_PATH) as conn:
-        await import_traders(conn, data["traders"])
+        count = await import_traders(conn, data["traders"])
 
-    if data.get("settings"):
+    settings = data.get("settings")
+    if settings and isinstance(settings, dict):
         async with aiosqlite.connect(DB_PATH) as conn:
-            for key, value in data["settings"].items():
+            for key, value in settings.items():
                 await set_setting(conn, key, str(value) if value is not None else "")
 
-    return {"imported": len(data["traders"])}
+    return {"imported": count}
 
 
 if __name__ == "__main__":

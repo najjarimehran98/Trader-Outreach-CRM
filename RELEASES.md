@@ -1,5 +1,32 @@
 # Release Notes
 
+## v1.2.0 — Bug Fix Sprint
+**Date:** 2025-06-17
+
+### Bug Fixes (Frontend)
+- Fixed keyboard Enter shortcut dropping trader ID — now opens detail correctly
+- Fixed scoring sliders completely broken — `calculatePreview` moved to global scope, DOM targeting fixed with unique IDs
+- Fixed raw text expand/collapse — replaced CSS class toggle with direct style manipulation
+- Added error handling to `refreshData` — connection recovery now works
+- Added error handling to `updateTraderField` — shows error toast on failure
+- Fixed `togglePlatform` splice(-1) bug — now checks index before removing
+- Escaped `research_notes` in textarea (was unescaped unlike `cover_message`)
+- Changed `window.onload` to `addEventListener` to avoid overwriting
+
+### Bug Fixes (Backend)
+- Enabled `PRAGMA foreign_keys = ON` — orphaned outreach logs now deleted with traders
+- Added `?confirm=yes` guard to `DELETE /api/traders` — prevents accidental data wipe
+- Fixed `_seed_sample_data` crash on restart — each insert wrapped in try/except
+- Fixed `import_data` crash when settings key missing — now checks type before iterating
+- Fixed `import_traders` bypassing fit score calculation — now uses `create_trader` for proper scoring
+
+### Files Changed
+- `index.html` — 8 frontend fixes
+- `main.py` — 3 backend fixes
+- `database.py` — 2 backend fixes
+
+---
+
 ## v1.1.2 — Fix: Trader Detail Page Blank
 **Date:** 2025-06-17
 
